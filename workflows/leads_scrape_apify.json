@@ -69,7 +69,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const groupUrl = $('Execute Workflow Trigger').item.json.group_url;\nconsole.log(`No posts found for ${groupUrl}`);\nreturn [{ json: { posts: [] } }];"
+        "jsCode": "const groupUrl = $('Execute Workflow Trigger').item.json.group_url;\nconsole.log(`No posts found for ${groupUrl}`);\nreturn [];"
       },
       "id": "log-empty-node",
       "name": "Log Empty",
