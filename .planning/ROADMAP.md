@@ -29,11 +29,10 @@
 
 **Requirements:** SCRP-01, SCRP-02, SCRP-03, SCRP-04
 
-**Plans:**
-1. Create workflow with Execute Workflow trigger
-2. Add HTTP Request node — Apify sync endpoint for `apify~facebook-groups-scraper`
-3. Map Apify response fields to `{ postId, authorName, postText, postLink, postDate }`
-4. Handle zero-post case: IF node → log + pass empty array
+**Plans:** 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Create leads_scrape_apify workflow: trigger, Apify HTTP Request, field mapping, zero-post handling
 
 **Done when:** Calling the sub-workflow with a real Facebook group URL returns a structured post array.
 
@@ -99,7 +98,7 @@
 | Phase | Workflow | Requirements | Status |
 |-------|----------|-------------|--------|
 | 1 | leads_error_notify | ERR-01–04 | In Progress |
-| 2 | leads_scrape_apify | SCRP-01–04 | Pending |
+| 2 | leads_scrape_apify | SCRP-01–04 | Planned |
 | 3 | leads_filter_claude | FLTR-01–07 | Pending |
 | 4 | leads_store_sheets | STOR-01–08 | Pending |
 | 5 | leads_main | ORCH-01–03 | Pending |
