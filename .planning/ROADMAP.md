@@ -60,15 +60,11 @@ Plans:
 
 **Requirements:** STOR-01, STOR-02, STOR-03, STOR-04, STOR-05, STOR-06, STOR-07, STOR-08
 
-**Plans:**
-1. Create workflow with Execute Workflow trigger
-2. Code node: extract group name from URL slug
-3. IF static data has Sheet ID → use it; ELSE create new sheet via Google Sheets API + store ID
-4. Get or create tab: check tab list → create if missing → insert header row
-5. Read all Post IDs from column A
-6. IF node: filter input posts to only those not already in sheet
-7. Append new rows with correct column mapping + Scraped At timestamp
-8. IF zero new posts: log and exit
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Build complete leads_store_sheets workflow JSON: trigger, URL slug extraction, sheet get/create with static data, tab get/create with header row, dedup, conditional append, zero-posts skip
+- [ ] 04-02-PLAN.md — Import into n8n, assign Google Sheets + Drive credentials, verify sheet creation and dedup, update STATE.md
 
 **Done when:** Running twice with the same posts results in rows appended only on the first run.
 
@@ -98,7 +94,7 @@ Plans:
 | 1 | leads_error_notify | ERR-01–04 | In Progress |
 | 2 | leads_scrape_apify | Complete    | 2026-03-21 |
 | 3 | leads_filter_claude | FLTR-01–07 | Planning Complete |
-| 4 | leads_store_sheets | STOR-01–08 | Pending |
+| 4 | leads_store_sheets | STOR-01–08 | Planning Complete |
 | 5 | leads_main | ORCH-01–03 | Pending |
 
 ---
