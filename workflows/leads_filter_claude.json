@@ -1,0 +1,179 @@
+{
+  "name": "leads_filter_claude",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-node",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst posts = input.posts || [];\nif (posts.length === 0) {\n  return [];\n}\nreturn posts.map(post => ({ json: post }));"
+      },
+      "id": "unpack-posts-node",
+      "name": "Unpack Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "id": "split-in-batches-node",
+      "name": "SplitInBatches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst posts = items.map(item => ({\n  id: item.json.postId,\n  text: item.json.postText,\n  author: item.json.authorName\n}));\nconst batchMessage = JSON.stringify(posts);\n\nconst systemPrompt = 'You are a lead qualification expert for a Family Law Attorney in Israel.\\nYou read Hebrew fluently and understand conversational, colloquial, and formal Hebrew.\\n\\nA LEAD is a Facebook post where a real person is actively seeking help related to:\\n- Divorce or separation (\\u05d2\\u05d9\\u05e8\\u05d5\\u05e9\\u05d9\\u05df, \\u05e4\\u05e8\\u05d9\\u05d3\\u05d4)\\n- Child custody disputes (\\u05de\\u05e9\\u05de\\u05d5\\u05e8\\u05ea \\u05d9\\u05dc\\u05d3\\u05d9\\u05dd)\\n- Alimony or financial disputes in marriage (\\u05de\\u05d6\\u05d5\\u05e0\\u05d5\\u05ea, \\u05d4\\u05e1\\u05db\\u05dd \\u05de\\u05de\\u05d5\\u05df)\\n- Restraining orders or domestic violence (\\u05e6\\u05d5 \\u05d4\\u05d2\\u05e0\\u05d4, \\u05d0\\u05dc\\u05d9\\u05de\\u05d5\\u05ea \\u05d1\\u05de\\u05e9\\u05e4\\u05d7\\u05d4)\\n- Family legal advice requests (\\u05d9\\u05d9\\u05e2\\u05d5\\u05e5 \\u05de\\u05e9\\u05e4\\u05d8\\u05d9 \\u05de\\u05e9\\u05e4\\u05d7\\u05ea\\u05d9)\\n- Property disputes in marriage or divorce (\\u05d7\\u05dc\\u05d5\\u05e7\\u05ea \\u05e8\\u05db\\u05d5\\u05e9)\\n\\nNOT a lead:\\n- Posts offering legal services (attorneys advertising)\\n- General news, opinion, or informational posts\\n- Posts that mention these topics without expressing a personal need\\n- Spam, promotions, or unrelated content\\n\\nRespond ONLY with valid JSON in this exact format:\\n{\"relevant_post_ids\": [\"id1\", \"id2\"]}\\n\\nIf no posts are relevant, return: {\"relevant_post_ids\": []}';\n\nconst requestBody = JSON.stringify({\n  model: 'claude-3-5-sonnet-20241022',\n  max_tokens: 512,\n  system: systemPrompt,\n  messages: [{ role: 'user', content: batchMessage }]\n});\n\nreturn [{\n  json: {\n    originalItems: items.map(i => i.json),\n    requestBody\n  }\n}];"
+      },
+      "id": "build-batch-message-node",
+      "name": "Build Batch Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.requestBody }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "claude-api-request-node",
+      "name": "Claude API Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1250, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-header-auth-credential",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const responseText = $input.first().json.content[0].text;\nconst originalItems = $('Build Batch Message').first().json.originalItems;\n\nlet parsed;\ntry {\n  parsed = JSON.parse(responseText);\n} catch (e) {\n  throw new Error('Claude returned malformed JSON: ' + responseText.substring(0, 200));\n}\n\nconst relevantIds = parsed.relevant_post_ids;\nif (!Array.isArray(relevantIds)) {\n  throw new Error('Claude response missing relevant_post_ids array: ' + responseText.substring(0, 200));\n}\n\nif (relevantIds.length === 0) {\n  return [];\n}\n\nconst idSet = new Set(relevantIds);\nconst filtered = originalItems.filter(item => idSet.has(item.postId));\nreturn filtered.map(item => ({ json: item }));"
+      },
+      "id": "parse-filter-response-node",
+      "name": "Parse and Filter Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 300]
+    },
+    {
+      "parameters": {},
+      "id": "no-op-node",
+      "name": "No Operation",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [750, 500]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Unpack Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack Posts": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches": {
+      "main": [
+        [
+          {
+            "node": "No Operation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Batch Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Batch Message": {
+      "main": [
+        [
+          {
+            "node": "Claude API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude API Request": {
+      "main": [
+        [
+          {
+            "node": "Parse and Filter Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse and Filter Response": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": ""
+  }
+}
