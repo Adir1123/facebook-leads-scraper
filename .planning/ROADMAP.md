@@ -45,13 +45,10 @@ Plans:
 
 **Requirements:** FLTR-01, FLTR-02, FLTR-03, FLTR-04, FLTR-05, FLTR-06, FLTR-07
 
-**Plans:**
-1. Create workflow with Execute Workflow trigger
-2. Split input posts into batches of 10 (Loop Over Items)
-3. Add HTTP Request node — Anthropic API with system prompt + batched posts as user message
-4. Code node: parse JSON response, extract `relevant_post_ids`, filter original batch
-5. Aggregate filtered results across all batches
-6. Handle malformed JSON: try/catch → throw error for error workflow
+**Plans:** 1 plan
+
+Plans:
+- [ ] 03-01-PLAN.md — Create leads_filter_claude workflow: trigger, SplitInBatches, Claude API call with Hebrew system prompt, JSON response parsing with try/catch, result aggregation
 
 **Done when:** Passing 20 mixed Hebrew posts returns only the relevant ones with correct IDs.
 
@@ -100,7 +97,7 @@ Plans:
 |-------|----------|-------------|--------|
 | 1 | leads_error_notify | ERR-01–04 | In Progress |
 | 2 | leads_scrape_apify | Complete    | 2026-03-21 |
-| 3 | leads_filter_claude | FLTR-01–07 | Pending |
+| 3 | leads_filter_claude | FLTR-01–07 | Planning Complete |
 | 4 | leads_store_sheets | STOR-01–08 | Pending |
 | 5 | leads_main | ORCH-01–03 | Pending |
 
