@@ -32,7 +32,8 @@
 **Plans:** 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — Create leads_scrape_apify workflow: trigger, Apify HTTP Request, field mapping, zero-post handling
+- [x] 02-01-PLAN.md — Create leads_scrape_apify workflow: trigger, Apify HTTP Request, field mapping, zero-post handling
+  - Tasks 1-2 complete (commits 2bd8533, 3edb4eb); Task 3 checkpoint awaiting human-verify in n8n
 
 **Done when:** Calling the sub-workflow with a real Facebook group URL returns a structured post array.
 
@@ -98,7 +99,7 @@ Plans:
 | Phase | Workflow | Requirements | Status |
 |-------|----------|-------------|--------|
 | 1 | leads_error_notify | ERR-01–04 | In Progress |
-| 2 | leads_scrape_apify | SCRP-01–04 | Planned |
+| 2 | leads_scrape_apify | SCRP-01–04 | In Progress (checkpoint) |
 | 3 | leads_filter_claude | FLTR-01–07 | Pending |
 | 4 | leads_store_sheets | STOR-01–08 | Pending |
 | 5 | leads_main | ORCH-01–03 | Pending |
