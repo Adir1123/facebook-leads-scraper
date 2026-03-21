@@ -29,7 +29,7 @@
 
 **Requirements:** SCRP-01, SCRP-02, SCRP-03, SCRP-04
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [x] 02-01-PLAN.md — Create leads_scrape_apify workflow: trigger, Apify HTTP Request, field mapping, zero-post handling
@@ -99,7 +99,7 @@ Plans:
 | Phase | Workflow | Requirements | Status |
 |-------|----------|-------------|--------|
 | 1 | leads_error_notify | ERR-01–04 | In Progress |
-| 2 | leads_scrape_apify | SCRP-01–04 | In Progress (checkpoint) |
+| 2 | leads_scrape_apify | Complete    | 2026-03-21 |
 | 3 | leads_filter_claude | FLTR-01–07 | Pending |
 | 4 | leads_store_sheets | STOR-01–08 | Pending |
 | 5 | leads_main | ORCH-01–03 | Pending |

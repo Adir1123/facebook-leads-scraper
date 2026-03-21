@@ -13,10 +13,10 @@
 
 ### Scraping
 
-- [ ] **SCRP-01**: leads_scrape_apify accepts `{ group_url, post_count }` via Execute Workflow trigger
-- [ ] **SCRP-02**: Calls Apify `apify~facebook-groups-scraper` via sync HTTP endpoint (blocks until complete)
-- [ ] **SCRP-03**: Returns array of `{ postId, authorName, postText, postLink, postDate }`
-- [ ] **SCRP-04**: If zero posts returned, logs "no posts found for [URL]" and passes empty array downstream
+- [x] **SCRP-01**: leads_scrape_apify accepts `{ group_url, post_count }` via Execute Workflow trigger
+- [x] **SCRP-02**: Calls Apify `apify~facebook-groups-scraper` via sync HTTP endpoint (blocks until complete)
+- [x] **SCRP-03**: Returns array of `{ postId, authorName, postText, postLink, postDate }`
+- [x] **SCRP-04**: If zero posts returned, logs "no posts found for [URL]" and passes empty array downstream
 
 ### Filtering
 
