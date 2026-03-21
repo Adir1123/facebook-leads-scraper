@@ -13,8 +13,8 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.apify.com/v2/acts/apify~facebook-groups-scraper/run-sync-get-dataset-items",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "apifyApi",
         "sendBody": true,
         "contentType": "json",
         "body": "={\n  \"startUrls\": [{ \"url\": \"{{ $json.group_url }}\" }],\n  \"resultsLimit\": {{ $json.post_count }},\n  \"viewOption\": \"CHRONOLOGICAL\"\n}",
@@ -33,7 +33,7 @@
       "typeVersion": 4,
       "position": [500, 300],
       "credentials": {
-        "httpHeaderAuth": {
+        "apifyApi": {
           "id": "apify-api-credential",
           "name": "Apify API"
         }
