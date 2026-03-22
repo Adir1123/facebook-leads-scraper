@@ -52,10 +52,10 @@ Requirements for Seen Leads UX milestone.
 
 ### Sheet UX
 
-- [ ] **UX-01**: Each group tab has a "Seen" checkbox column (column F) on every lead row
-- [ ] **UX-02**: Checking the checkbox moves the row to a global "Seen" tab and deletes it from the group tab (via Google Apps Script)
-- [ ] **UX-03**: "Seen" tab has columns: Post ID | Author | Post Link | Post Date | Scraped At | Source Group
-- [ ] **UX-04**: "Seen" tab is auto-created if it doesn't exist
+- [x] **UX-01**: Each group tab has a "Seen" checkbox column (column F) on every lead row
+- [x] **UX-02**: Checking the checkbox moves the row to a global "Seen" tab and deletes it from the group tab (via Google Apps Script)
+- [x] **UX-03**: "Seen" tab has columns: Post ID | Author | Post Link | Post Date | Scraped At | Source Group
+- [x] **UX-04**: "Seen" tab is auto-created if it doesn't exist
 
 ### Dedup
 

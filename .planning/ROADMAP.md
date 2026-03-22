@@ -126,7 +126,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md — Google Apps Script: onEdit trigger for row move + addCheckboxesToAllGroups utility
+- [x] 06-01-PLAN.md — Google Apps Script: onEdit trigger for row move + addCheckboxesToAllGroups utility
 
 ### Phase 7: Pipeline Update
 
