@@ -1,9 +1,19 @@
 # Roadmap: Facebook Leads Automation
 
 **Created:** 2026-03-21
-**Milestone:** v1 — Full working pipeline
+**Current Milestone:** v1.1 — Seen Leads UX
 
 ---
+
+## Milestones
+
+- [x] **v1.0 Core Pipeline** — Phases 1-5 (complete 2026-03-22)
+- [ ] **v1.1 Seen Leads UX** — Phases 6-7 (in progress)
+
+---
+
+<details>
+<summary>v1.0 Core Pipeline (Phases 1-5) — COMPLETE 2026-03-22</summary>
 
 ## Phase 1: leads_error_notify
 
@@ -33,7 +43,6 @@
 
 Plans:
 - [x] 02-01-PLAN.md — Create leads_scrape_apify workflow: trigger, Apify HTTP Request, field mapping, zero-post handling
-  - Tasks 1-2 complete (commits 2bd8533, 3edb4eb); Task 3 checkpoint awaiting human-verify in n8n
 
 **Done when:** Calling the sub-workflow with a real Facebook group URL returns a structured post array.
 
@@ -48,7 +57,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 03-01-PLAN.md — Create leads_filter_claude workflow: trigger, SplitInBatches, Claude API call with Hebrew system prompt, JSON response parsing with try/catch, result aggregation
+- [x] 03-01-PLAN.md — Create leads_filter_claude workflow: trigger, SplitInBatches, Claude API call with Hebrew system prompt, JSON response parsing with try/catch, result aggregation
 
 **Done when:** Passing 20 mixed Hebrew posts returns only the relevant ones with correct IDs.
 
@@ -63,8 +72,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [x] 04-01-PLAN.md — Build complete leads_store_sheets workflow JSON: trigger, URL slug extraction, sheet get/create with static data, tab get/create with header row, dedup, conditional append, zero-posts skip (commit: 05e9bbb)
-- [ ] 04-02-PLAN.md — Import into n8n, assign Google Sheets + Drive credentials, verify sheet creation and dedup, update STATE.md
+- [x] 04-01-PLAN.md — Build complete leads_store_sheets workflow JSON
+- [x] 04-02-PLAN.md — Import into n8n, assign credentials, verify dedup
 
 **Done when:** Running twice with the same posts results in rows appended only on the first run.
 
@@ -76,26 +85,76 @@ Plans:
 
 **Requirements:** ORCH-01, ORCH-02, ORCH-03
 
-**Plans:**
-1/1 plans complete
-2. Code node: split `group_urls` by newline, default `posts_per_group` to 50 if 0/empty
-3. Loop Over Items: for each URL → call leads_scrape_apify → leads_filter_claude → leads_store_sheets
-4. Attach leads_error_notify as Error Workflow
-5. Set success response on form
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] 05-01-PLAN.md — Build leads_main orchestrator workflow JSON with all nodes
 
 **Done when:** Submitting the form with 2 real group URLs results in leads appended to a Google Sheet with no errors.
 
----
-
-## Summary
-
-| Phase | Workflow | Requirements | Status |
-|-------|----------|-------------|--------|
-| 1 | leads_error_notify | ERR-01–04 | In Progress |
-| 2 | leads_scrape_apify | Complete    | 2026-03-21 |
-| 3 | leads_filter_claude | FLTR-01–07 | Planning Complete |
-| 4 | leads_store_sheets | STOR-01–08 | In Progress (04-01 complete) |
-| 5 | 1/1 | Complete   | 2026-03-22 |
+</details>
 
 ---
+
+## v1.1 Seen Leads UX (In Progress)
+
+**Milestone Goal:** Let the client mark leads as handled. Checked leads auto-move to a Seen tab and are never re-inserted by the pipeline.
+
+### Phases
+
+- [ ] **Phase 6: Seen Tab UX** — Google Apps Script: checkbox column, auto-move to Seen tab, Seen tab schema
+- [ ] **Phase 7: Pipeline Update** — n8n: dedup against Seen tab, append checkbox column on new leads
+
+---
+
+## Phase Details
+
+### Phase 6: Seen Tab UX
+
+**Goal:** The client can check a box on any lead row and it automatically moves to the Seen tab, removing it from the group tab.
+
+**Depends on:** Phase 5 (Google Sheet exists with group tabs)
+
+**Requirements:** UX-01, UX-02, UX-03, UX-04
+
+**Success Criteria** (what must be TRUE):
+  1. Every lead row in a group tab has a checkbox in column F
+  2. Checking the checkbox causes the row to disappear from the group tab within seconds
+  3. The moved row appears in the "Seen" tab with its original data plus a Source Group column
+  4. The "Seen" tab is created automatically if it does not exist when the first row is moved
+
+**Plans**: TBD
+
+### Phase 7: Pipeline Update
+
+**Goal:** The pipeline writes an unchecked checkbox when appending new leads, and never re-inserts a lead that already exists in the Seen tab.
+
+**Depends on:** Phase 6 (Seen tab schema defined)
+
+**Requirements:** DDP-01, DDP-02, APP-01
+
+**Success Criteria** (what must be TRUE):
+  1. New leads appended to a group tab have an unchecked checkbox in column F
+  2. Running the pipeline for a group whose leads were moved to Seen does not re-insert them
+  3. A lead already in the Seen tab is skipped even if it would match a fresh scrape result
+
+**Plans**: TBD
+
+---
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. leads_error_notify | v1.0 | 1/1 | Complete | 2026-03-22 |
+| 2. leads_scrape_apify | v1.0 | 1/1 | Complete | 2026-03-22 |
+| 3. leads_filter_claude | v1.0 | 1/1 | Complete | 2026-03-22 |
+| 4. leads_store_sheets | v1.0 | 2/2 | Complete | 2026-03-22 |
+| 5. leads_main | v1.0 | 1/1 | Complete | 2026-03-22 |
+| 6. Seen Tab UX | v1.1 | 0/TBD | Not started | - |
+| 7. Pipeline Update | v1.1 | 0/TBD | Not started | - |
+
+---
+
 *Roadmap created: 2026-03-21*
+*Last updated: 2026-03-22 — v1.1 Seen Leads UX phases added*

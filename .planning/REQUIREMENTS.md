@@ -84,26 +84,20 @@ Requirements for Seen Leads UX milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ERR-01, ERR-02, ERR-03, ERR-04 | Phase 1 | In Progress |
-| SCRP-01, SCRP-02, SCRP-03, SCRP-04 | Phase 2 | Pending |
-| FLTR-01–FLTR-07 | Phase 3 | Pending |
-| STOR-01–STOR-08 | Phase 4 | Complete (workflow JSON built, import pending) |
-| ORCH-01, ORCH-02, ORCH-03 | Phase 5 | Pending |
-
-| UX-01 | — | Pending |
-| UX-02 | — | Pending |
-| UX-03 | — | Pending |
-| UX-04 | — | Pending |
-| DDP-01 | — | Pending |
-| DDP-02 | — | Pending |
-| APP-01 | — | Pending |
+| ERR-01, ERR-02, ERR-03, ERR-04 | Phase 1 | Complete |
+| SCRP-01, SCRP-02, SCRP-03, SCRP-04 | Phase 2 | Complete |
+| FLTR-01–FLTR-07 | Phase 3 | Complete |
+| STOR-01–STOR-08 | Phase 4 | Complete |
+| ORCH-01, ORCH-02, ORCH-03 | Phase 5 | Complete |
+| UX-01, UX-02, UX-03, UX-04 | Phase 6 | Pending |
+| DDP-01, DDP-02, APP-01 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 26 total (mapped)
+- v1 requirements: 26 total (mapped, complete)
 - v1.1 requirements: 7 total
-- v1.1 mapped to phases: 0 (pending roadmap)
-- Unmapped: 7 (pending roadmap creation)
+- v1.1 mapped to phases: 7/7 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-22 — v1.1 Seen Leads UX requirements added*
+*Last updated: 2026-03-22 — v1.1 requirements mapped to Phases 6 and 7*
