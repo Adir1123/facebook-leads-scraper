@@ -141,7 +141,10 @@ Plans:
   2. Running the pipeline for a group whose leads were moved to Seen does not re-insert them
   3. A lead already in the Seen tab is skipped even if it would match a fresh scrape result
 
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 07-01-PLAN.md — Update leads_store_sheets with Seen tab dedup and checkbox column
 
 ---
 
@@ -155,9 +158,9 @@ Plans:
 | 4. leads_store_sheets | v1.0 | 2/2 | Complete | 2026-03-22 |
 | 5. leads_main | v1.0 | 1/1 | Complete | 2026-03-22 |
 | 6. Seen Tab UX | v1.1 | 0/1 | Planned | - |
-| 7. Pipeline Update | v1.1 | 0/TBD | Not started | - |
+| 7. Pipeline Update | v1.1 | 0/1 | Planned | - |
 
 ---
 
 *Roadmap created: 2026-03-21*
-*Last updated: 2026-03-22 — Phase 6 planned (1 plan)*
+*Last updated: 2026-03-23 — Phase 7 planned (1 plan)*
