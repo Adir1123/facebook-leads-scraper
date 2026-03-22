@@ -12,19 +12,19 @@ Automatically surface real people seeking family law help in Hebrew Facebook gro
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] n8n form accepts `group_urls` (multi-line) and `posts_per_group` (number, default 50) — Validated in Phase 5: leads_main
+- [x] Apify `facebook-groups-scraper` scrapes each group and returns posts with ID, author, text, link, date — Validated in Phase 2: leads_scrape_apify
+- [x] Claude filters posts in batches of 10, returning only genuine family law leads (Hebrew-aware) — Validated in Phase 3: leads_filter_claude
+- [x] Google Sheet auto-created on first run; Sheet ID persisted in n8n static data — Validated in Phase 4: leads_store_sheets
+- [x] One tab per group, named after the group URL slug — Validated in Phase 4: leads_store_sheets
+- [x] Columns: Post ID | Author | Post Link | Post Date | Scraped At — Validated in Phase 4: leads_store_sheets
+- [x] Deduplication: never append a Post ID already in the sheet — Validated in Phase 4: leads_store_sheets
+- [x] Error workflow sends Gmail alert with workflow name, node, error message, timestamp — Created in Phase 1 (credential pending)
+- [x] All credentials stored in n8n Credential Store only — never in workflow JSON — Enforced across all phases
 
 ### Active
 
-- [ ] n8n form accepts `group_urls` (multi-line) and `posts_per_group` (number, default 50)
-- [ ] Apify `facebook-groups-scraper` scrapes each group and returns posts with ID, author, text, link, date
-- [ ] Claude filters posts in batches of 10, returning only genuine family law leads (Hebrew-aware)
-- [ ] Google Sheet auto-created on first run; Sheet ID persisted in n8n static data
-- [ ] One tab per group, named after the group URL slug
-- [ ] Columns: Post ID | Author | Post Link | Post Date | Scraped At
-- [ ] Deduplication: never append a Post ID already in the sheet
-- [ ] Error workflow sends Gmail alert with workflow name, node, error message, timestamp
-- [ ] All credentials stored in n8n Credential Store only — never in workflow JSON
+(All requirements validated — see above)
 
 ### Out of Scope
 
@@ -55,12 +55,12 @@ Automatically surface real people seeking family law help in Hebrew Facebook gro
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Sub-workflows over monolith | Each stage independently testable and rerunnable | — Pending |
-| Sync Apify endpoint | Simpler than polling; acceptable latency for ≤200 posts | — Pending |
-| Batch Claude calls (10/call) | Balances token cost vs. context quality | — Pending |
-| Static data for Sheet ID | Avoids external config store; persists across runs | — Pending |
-| Append-only sheets | Safe for client data; never overwrites existing rows | — Pending |
-| Claude structured JSON output | Deterministic parsing; no regex on prose | — Pending |
+| Sub-workflows over monolith | Each stage independently testable and rerunnable | Validated |
+| Sync Apify endpoint | Simpler than polling; acceptable latency for ≤200 posts | Validated |
+| Batch Claude calls (10/call) | Balances token cost vs. context quality | Validated |
+| Static data for Sheet ID | Avoids external config store; persists across runs | Validated |
+| Append-only sheets | Safe for client data; never overwrites existing rows | Validated |
+| Claude structured JSON output | Deterministic parsing; no regex on prose | Validated |
 
 ---
-*Last updated: 2026-03-21 — initial project setup*
+*Last updated: 2026-03-22 — All 5 phases complete. Pipeline ready for end-to-end testing.*
