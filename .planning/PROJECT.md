@@ -69,8 +69,8 @@ Automatically surface real people seeking family law help in Hebrew Facebook gro
 **Target features:**
 - [x] Checkbox column on group tabs for marking leads as "seen" — Validated in Phase 6
 - [x] Google Apps Script to auto-move checked rows to a global "Seen" tab — Validated in Phase 6
-- [ ] Dedup update: check both group tab and Seen tab before appending
-- [ ] New leads include unchecked checkbox on append
+- [x] Dedup update: check both group tab and Seen tab before appending — Validated in Phase 7
+- [x] New leads include unchecked checkbox on append — Validated in Phase 7
 
 ## Evolution
 
@@ -90,4 +90,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 — Phase 6 complete (Seen Tab UX deployed)*
+*Last updated: 2026-03-23 — Phase 7 complete (Pipeline dedup + checkbox column)*
