@@ -103,7 +103,7 @@ Plans:
 ### Phases
 
 - [ ] **Phase 6: Seen Tab UX** — Google Apps Script: checkbox column, auto-move to Seen tab, Seen tab schema
-- [ ] **Phase 7: Pipeline Update** — n8n: dedup against Seen tab, append checkbox column on new leads
+- [x] **Phase 7: Pipeline Update** — n8n: dedup against Seen tab, append checkbox column on new leads (completed 2026-03-22)
 
 ---
 
@@ -141,10 +141,10 @@ Plans:
   2. Running the pipeline for a group whose leads were moved to Seen does not re-insert them
   3. A lead already in the Seen tab is skipped even if it would match a fresh scrape result
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 07-01-PLAN.md — Update leads_store_sheets with Seen tab dedup and checkbox column
+- [x] 07-01-PLAN.md — Update leads_store_sheets with Seen tab dedup and checkbox column
 
 ---
 
@@ -158,7 +158,7 @@ Plans:
 | 4. leads_store_sheets | v1.0 | 2/2 | Complete | 2026-03-22 |
 | 5. leads_main | v1.0 | 1/1 | Complete | 2026-03-22 |
 | 6. Seen Tab UX | v1.1 | 0/1 | Planned | - |
-| 7. Pipeline Update | v1.1 | 0/1 | Planned | - |
+| 7. Pipeline Update | v1.1 | 1/1 | Complete   | 2026-03-22 |
 
 ---
 

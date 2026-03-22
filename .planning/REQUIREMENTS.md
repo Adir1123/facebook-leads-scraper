@@ -59,12 +59,12 @@ Requirements for Seen Leads UX milestone.
 
 ### Dedup
 
-- [ ] **DDP-01**: leads_store_sheets reads Post IDs from both the group tab and the "Seen" tab before appending
-- [ ] **DDP-02**: A lead that exists in the "Seen" tab is never re-inserted into any group tab
+- [x] **DDP-01**: leads_store_sheets reads Post IDs from both the group tab and the "Seen" tab before appending
+- [x] **DDP-02**: A lead that exists in the "Seen" tab is never re-inserted into any group tab
 
 ### Append
 
-- [ ] **APP-01**: New leads appended to group tabs include an unchecked checkbox in column F
+- [x] **APP-01**: New leads appended to group tabs include an unchecked checkbox in column F
 
 ## Out of Scope
 
