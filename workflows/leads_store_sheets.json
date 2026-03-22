@@ -3,41 +3,41 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "trigger-node",
+      "id": "8bae16f4-6c05-4a64-a77b-fdf89f5ce3cf",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [250, 300]
+      "position": [-4096, 208]
     },
     {
       "parameters": {
         "jsCode": "const input = $input.first().json;\nconst posts = input.posts || [];\nconst groupUrl = input.group_url || '';\nif (posts.length === 0) {\n  return [{ json: { posts: [], groupUrl, tabName: '', sheetId: null, skip: true } }];\n}\nreturn [{ json: { posts, groupUrl } }];"
       },
-      "id": "read-input-node",
+      "id": "b17724f6-c165-4037-a208-67c866b4a562",
       "name": "Read Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 300]
+      "position": [-3856, 208]
     },
     {
       "parameters": {
         "jsCode": "const groupUrl = $input.first().json.groupUrl;\nconst posts = $input.first().json.posts;\nconst match = groupUrl.match(/\\/groups\\/([^\\/\\?#]+)/);\nconst rawSlug = match ? match[1] : 'unknown-group';\nconst tabName = rawSlug\n  .replace(/[\\/\\\\?:*\\[\\]]/g, '-')\n  .replace(/-+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 100) || 'unknown-group';\nreturn [{ json: { posts, groupUrl, tabName } }];"
       },
-      "id": "extract-tab-name-node",
+      "id": "6475afe3-cd82-4ece-96a0-f7e0a3165004",
       "name": "Extract Tab Name",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [750, 300]
+      "position": [-3600, 208]
     },
     {
       "parameters": {
         "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst posts = $input.first().json.posts;\nconst groupUrl = $input.first().json.groupUrl;\nconst tabName = $input.first().json.tabName;\nlet sheetId = staticData.sheetId || null;\nlet needsCreation = !sheetId;\nreturn [{ json: { sheetId, needsCreation, posts, groupUrl, tabName } }];"
       },
-      "id": "get-or-create-sheet-node",
+      "id": "0b37e6df-ab04-4600-8b3a-432b3cdc4b2b",
       "name": "Get or Create Sheet",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1000, 300]
+      "position": [-3344, 208]
     },
     {
       "parameters": {
@@ -45,35 +45,28 @@
           "boolean": [
             {
               "value1": "={{ $json.needsCreation }}",
-              "operation": "equal",
               "value2": true
             }
           ]
         }
       },
-      "id": "if-needs-sheet-node",
+      "id": "80f1ee88-c9a9-4fdb-a33a-4316c0147b23",
       "name": "IF Needs Sheet Creation",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1250, 300]
+      "position": [-3104, 208]
     },
     {
       "parameters": {
         "resource": "spreadsheet",
-        "operation": "create",
-        "title": "Facebook Leads"
+        "title": "Facebook Leads",
+        "options": {}
       },
-      "id": "create-spreadsheet-node",
+      "id": "11149fbe-bc53-44e9-9a31-dcfc132150fa",
       "name": "Create Spreadsheet",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [1500, 200],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "google-sheets-credential",
-          "name": "Google Sheets account"
-        }
-      }
+      "position": [-2848, 112]
     },
     {
       "parameters": {
@@ -87,48 +80,41 @@
           "permissionsValues": {
             "role": "writer",
             "type": "user",
-            "emailAddress": "PLACEHOLDER_CREDENTIAL_EMAIL"
+            "emailAddress": "adirgabay9@gmail.com"
           }
         },
         "options": {
           "sendNotificationEmail": false
         }
       },
-      "id": "share-sheet-node",
+      "id": "f8bab645-4877-49f8-9aeb-21e37a4cb632",
       "name": "Share Sheet",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [1750, 200],
-      "credentials": {
-        "googleDriveOAuth2Api": {
-          "id": "google-drive-credential",
-          "name": "Google Drive account"
-        }
-      }
+      "position": [-2608, 112]
     },
     {
       "parameters": {
         "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst newSheetId = $('Create Spreadsheet').first().json.spreadsheetId;\nstaticData.sheetId = newSheetId;\n// Try IF Needs Sheet Creation (normal path) then Self-Heal Sheet (recovery path)\nlet prev;\ntry {\n  prev = $('IF Needs Sheet Creation').first().json;\n} catch (e) {\n  prev = $('Self-Heal Sheet').first().json;\n}\nreturn [{ json: { sheetId: newSheetId, posts: prev.posts, groupUrl: prev.groupUrl, tabName: prev.tabName } }];"
       },
-      "id": "store-sheet-id-node",
+      "id": "23c3aad3-dd94-46dc-8130-fa6d40a6eb99",
       "name": "Store Sheet ID",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2000, 200]
+      "position": [-2352, 112]
     },
     {
       "parameters": {
         "jsCode": "const input = $('IF Needs Sheet Creation').first().json;\nreturn [{ json: { sheetId: input.sheetId, posts: input.posts, groupUrl: input.groupUrl, tabName: input.tabName } }];"
       },
-      "id": "pass-existing-sheet-node",
+      "id": "c5f9a235-b9d4-4b38-ad70-5d52a5bc670d",
       "name": "Pass Existing Sheet",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1500, 400]
+      "position": [-2848, 304]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.sheetId }}?fields=sheets.properties.title",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "googleSheetsOAuth2Api",
@@ -140,42 +126,42 @@
           }
         }
       },
-      "id": "validate-sheet-node",
+      "id": "100926fe-76bd-43d5-9bd3-d6c179d84631",
       "name": "Validate Sheet Access",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [2250, 300],
+      "position": [-2096, 208],
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "jsCode": "// The HTTP response from Validate Sheet Access only has sheets[].properties.title\n// Recover sheetId, posts, groupUrl, tabName from the upstream Code nodes\n// that fed INTO Validate Sheet Access (Store Sheet ID or Pass Existing Sheet)\nconst httpResponse = $input.first().json;\n\n// Try Store Sheet ID first (creation path), fall back to Pass Existing Sheet (reuse path)\nlet upstream;\ntry {\n  upstream = $('Store Sheet ID').first().json;\n} catch (e) {\n  upstream = $('Pass Existing Sheet').first().json;\n}\n\nconst sheetId = upstream.sheetId;\nconst posts = upstream.posts;\nconst groupUrl = upstream.groupUrl;\nconst tabName = upstream.tabName;\n\n// Extract tab list from HTTP response\nconst tabs = (httpResponse.sheets || []).map(s => s.properties.title);\n\nreturn [{ json: { sheetId, posts, groupUrl, tabName, tabs } }];"
       },
-      "id": "merge-validate-data-node",
+      "id": "407906d5-3938-4502-9d9e-378e2028c4a5",
       "name": "Merge Validate Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2400, 200]
+      "position": [-1952, 112]
     },
     {
       "parameters": {
         "jsCode": "const staticData = $getWorkflowStaticData('global');\nconsole.log('Sheet ID ' + staticData.sheetId + ' is inaccessible (deleted or permissions revoked). Clearing static data and creating new sheet.');\nstaticData.sheetId = undefined;\n\n// Recover posts/groupUrl/tabName from upstream to pass through to creation branch\nlet upstream;\ntry {\n  upstream = $('Store Sheet ID').first().json;\n} catch (e) {\n  upstream = $('Pass Existing Sheet').first().json;\n}\n\n// Return with needsCreation flag — this output routes to Create Spreadsheet\nreturn [{ json: {\n  sheetId: null,\n  needsCreation: true,\n  posts: upstream.posts,\n  groupUrl: upstream.groupUrl,\n  tabName: upstream.tabName\n} }];"
       },
-      "id": "self-heal-sheet-node",
+      "id": "0db83b56-500c-47a4-ab47-b0ef5c7603c1",
       "name": "Self-Heal Sheet",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2500, 400]
+      "position": [-1856, 304]
     },
     {
       "parameters": {
         "jsCode": "// Merge Validate Data has already recovered all upstream fields + tabs\nconst data = $input.first().json;\nconst tabExists = data.tabs.includes(data.tabName);\nreturn [{ json: { sheetId: data.sheetId, tabName: data.tabName, tabExists, posts: data.posts, groupUrl: data.groupUrl } }];"
       },
-      "id": "check-tab-exists-node",
+      "id": "8b83bdae-21d8-475b-8cd2-f41f8cd31b50",
       "name": "Check Tab Exists",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2600, 200]
+      "position": [-1744, 112]
     },
     {
       "parameters": {
@@ -183,85 +169,38 @@
           "boolean": [
             {
               "value1": "={{ $json.tabExists }}",
-              "operation": "equal",
               "value2": true
             }
           ]
         }
       },
-      "id": "if-tab-exists-node",
+      "id": "a286586c-68a7-4ebe-af2f-b5c3e25bcc0f",
       "name": "IF Tab Exists",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [2850, 200]
+      "position": [-1504, 112]
     },
     {
       "parameters": {
-        "resource": "sheet",
         "operation": "create",
         "documentId": {
           "__rl": true,
           "value": "={{ $json.sheetId }}",
           "mode": "id"
         },
-        "sheetName": "={{ $json.tabName }}"
+        "options": {},
+        "resource": "sheet",
+        "title": "={{ $json.tabName }}"
       },
-      "id": "create-tab-node",
+      "id": "1169ee9c-2c0d-4608-85f5-833b2f32d17a",
       "name": "Create Tab",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [3100, 300],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "google-sheets-credential",
-          "name": "Google Sheets account"
-        }
-      }
+      "position": [-1248, 208],
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "resource": "sheet",
-        "operation": "appendRow",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Check Tab Exists').first().json.sheetId }}",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "={{ $('Check Tab Exists').first().json.tabName }}",
-          "mode": "name"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "value": [
-              { "column": "A", "fieldValue": "Post ID" },
-              { "column": "B", "fieldValue": "Author" },
-              { "column": "C", "fieldValue": "Post Link" },
-              { "column": "D", "fieldValue": "Post Date" },
-              { "column": "E", "fieldValue": "Scraped At" }
-            ]
-          }
-        },
-        "options": {}
-      },
-      "id": "write-header-node",
-      "name": "Write Header Row",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
-      "position": [3350, 300],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "google-sheets-credential",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "sheet",
-        "operation": "read",
         "documentId": {
           "__rl": true,
           "value": "={{ $json.sheetId }}",
@@ -272,29 +211,26 @@
           "value": "={{ $json.tabName }}",
           "mode": "name"
         },
-        "options": {}
+        "options": {},
+        "resource": "sheet",
+        "operation": "read"
       },
-      "id": "read-existing-ids-node",
+      "id": "08e03859-af18-4a37-a36d-abb6ccd1af77",
       "name": "Read Existing IDs",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [3600, 200],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "google-sheets-credential",
-          "name": "Google Sheets account"
-        }
-      }
+      "position": [-752, 112],
+      "alwaysOutputData": true
     },
     {
       "parameters": {
         "jsCode": "const existingRows = $('Read Existing IDs').all();\nconst inputData = $('Check Tab Exists').first().json;\nconst inputPosts = inputData.posts || [];\nconst existingIds = new Set(existingRows.map(row => String(row.json['Post ID'] || '')));\nconst newPosts = inputPosts.filter(post => !existingIds.has(String(post.postId)));\nif (newPosts.length === 0) {\n  return [{ json: { newPosts: [], hasNewPosts: false, sheetId: inputData.sheetId, tabName: inputData.tabName } }];\n}\nreturn [{ json: { newPosts, hasNewPosts: true, sheetId: inputData.sheetId, tabName: inputData.tabName } }];"
       },
-      "id": "filter-new-posts-node",
+      "id": "3f5e1eb0-d32b-4b22-bde3-6b717aa8aac2",
       "name": "Filter New Posts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3850, 200]
+      "position": [-496, 112]
     },
     {
       "parameters": {
@@ -302,160 +238,367 @@
           "boolean": [
             {
               "value1": "={{ $json.hasNewPosts }}",
-              "operation": "equal",
               "value2": true
             }
           ]
         }
       },
-      "id": "if-has-new-posts-node",
+      "id": "50ea2329-e0bf-42a7-a4d5-bf487954f79d",
       "name": "IF Has New Posts",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [4100, 200]
+      "position": [-256, 112]
     },
     {
       "parameters": {
         "jsCode": "const data = $input.first().json;\nconst posts = data.newPosts;\nconst scrapedAt = new Date().toISOString();\nreturn posts.map(post => ({\n  json: {\n    'Post ID': post.postId,\n    'Author': post.authorName,\n    'Post Link': post.postLink,\n    'Post Date': post.postDate,\n    'Scraped At': scrapedAt,\n    _sheetId: data.sheetId,\n    _tabName: data.tabName\n  }\n}));"
       },
-      "id": "build-rows-node",
+      "id": "4e1bf9da-f36c-4a37-be21-12f5873e9e66",
       "name": "Build Rows",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [4350, 100]
-    },
-    {
-      "parameters": {
-        "resource": "sheet",
-        "operation": "appendRow",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $('Filter New Posts').first().json.sheetId }}",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "={{ $('Filter New Posts').first().json.tabName }}",
-          "mode": "name"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "value": [
-              { "column": "A", "fieldValue": "={{ $json['Post ID'] }}" },
-              { "column": "B", "fieldValue": "={{ $json['Author'] }}" },
-              { "column": "C", "fieldValue": "={{ $json['Post Link'] }}" },
-              { "column": "D", "fieldValue": "={{ $json['Post Date'] }}" },
-              { "column": "E", "fieldValue": "={{ $json['Scraped At'] }}" }
-            ]
-          }
-        },
-        "options": {
-          "cellFormat": "USER_ENTERED"
-        }
-      },
-      "id": "append-rows-node",
-      "name": "Append Rows",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
-      "position": [4600, 100],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "google-sheets-credential",
-          "name": "Google Sheets account"
-        }
-      }
+      "position": [0, 0]
     },
     {
       "parameters": {
         "jsCode": "console.log('All posts already exist in sheet. Skipping append.');\nreturn [];"
       },
-      "id": "log-skip-node",
+      "id": "47866f77-c967-46ff-9b5d-dad246eec4cc",
       "name": "Log Skip",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [4350, 300]
+      "position": [0, 208]
+    },
+    {
+      "parameters": {
+        "jsCode": "const checkTabData = $('Check Tab Exists').first().json;\nreturn [{ json: checkTabData }];"
+      },
+      "id": "54c4b7ca-daca-4970-8c5e-6320c7eb1b56",
+      "name": "Restore Data After Tab Create",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3300, 300]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.sheetId }}/values/'{{ $json.tabName }}'!A1:E1?valueInputOption=RAW",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"values\": [[\"Post ID\", \"Author\", \"Post Link\", \"Post Date\", \"Scraped At\"]]}",
+        "options": {}
+      },
+      "id": "110e2a9e-d40f-4dcd-843e-f535f687401f",
+      "name": "Write Header Row",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-1008, 208]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Restore Data After Tab Create').first().json;\nreturn [{ json: data }];"
+      },
+      "id": "fdb17e0c-2861-4354-9f72-a518e25e0340",
+      "name": "Restore Data After Header",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-768, 208]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json._sheetId }}/values/'{{ $json._tabName }}'!A:E:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ values: [[ $json['Post ID'], $json['Author'], $json['Post Link'], $json['Post Date'], $json['Scraped At'] ]] }) }}",
+        "options": {}
+      },
+      "id": "fd035d13-84e4-4fd2-985e-be59807f3d06",
+      "name": "Append Rows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [256, 0]
     }
   ],
   "connections": {
     "Execute Workflow Trigger": {
-      "main": [[{"node": "Read Input", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Read Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Read Input": {
-      "main": [[{"node": "Extract Tab Name", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Extract Tab Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract Tab Name": {
-      "main": [[{"node": "Get or Create Sheet", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Get or Create Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get or Create Sheet": {
-      "main": [[{"node": "IF Needs Sheet Creation", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "IF Needs Sheet Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "IF Needs Sheet Creation": {
       "main": [
-        [{"node": "Create Spreadsheet", "type": "main", "index": 0}],
-        [{"node": "Pass Existing Sheet", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Create Spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pass Existing Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Create Spreadsheet": {
-      "main": [[{"node": "Share Sheet", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Share Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Share Sheet": {
-      "main": [[{"node": "Store Sheet ID", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Store Sheet ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Store Sheet ID": {
-      "main": [[{"node": "Validate Sheet Access", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Validate Sheet Access",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Pass Existing Sheet": {
-      "main": [[{"node": "Validate Sheet Access", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Validate Sheet Access",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Validate Sheet Access": {
       "main": [
-        [{"node": "Merge Validate Data", "type": "main", "index": 0}],
-        [{"node": "Self-Heal Sheet", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Merge Validate Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Self-Heal Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Merge Validate Data": {
-      "main": [[{"node": "Check Tab Exists", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Check Tab Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Self-Heal Sheet": {
-      "main": [[{"node": "Create Spreadsheet", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Create Spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Check Tab Exists": {
-      "main": [[{"node": "IF Tab Exists", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "IF Tab Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "IF Tab Exists": {
       "main": [
-        [{"node": "Read Existing IDs", "type": "main", "index": 0}],
-        [{"node": "Create Tab", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Read Existing IDs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Create Tab": {
-      "main": [[{"node": "Write Header Row", "type": "main", "index": 0}]]
-    },
-    "Write Header Row": {
-      "main": [[{"node": "Read Existing IDs", "type": "main", "index": 0}]]
-    },
     "Read Existing IDs": {
-      "main": [[{"node": "Filter New Posts", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Filter New Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Filter New Posts": {
-      "main": [[{"node": "IF Has New Posts", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "IF Has New Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "IF Has New Posts": {
       "main": [
-        [{"node": "Build Rows", "type": "main", "index": 0}],
-        [{"node": "Log Skip", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Build Rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Skip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tab": {
+      "main": [
+        [
+          {
+            "node": "Restore Data After Tab Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Data After Tab Create": {
+      "main": [
+        [
+          {
+            "node": "Write Header Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Header Row": {
+      "main": [
+        [
+          {
+            "node": "Restore Data After Header",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Data After Header": {
+      "main": [
+        [
+          {
+            "node": "Read Existing IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Build Rows": {
-      "main": [[{"node": "Append Rows", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Append Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
   "settings": {
-    "executionOrder": "v1"
-  },
-  "meta": {
-    "instanceId": ""
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "callerPolicy": "workflowsFromSameOwner"
   }
 }
