@@ -46,6 +46,26 @@
 - [ ] **ERR-03**: Gmail body includes: workflow name, failed node, error message, timestamp, execution ID
 - [ ] **ERR-04**: All credentials stored in n8n Credential Store — never hardcoded in workflow JSON
 
+## v1.1 Requirements
+
+Requirements for Seen Leads UX milestone.
+
+### Sheet UX
+
+- [ ] **UX-01**: Each group tab has a "Seen" checkbox column (column F) on every lead row
+- [ ] **UX-02**: Checking the checkbox moves the row to a global "Seen" tab and deletes it from the group tab (via Google Apps Script)
+- [ ] **UX-03**: "Seen" tab has columns: Post ID | Author | Post Link | Post Date | Scraped At | Source Group
+- [ ] **UX-04**: "Seen" tab is auto-created if it doesn't exist
+
+### Dedup
+
+- [ ] **DDP-01**: leads_store_sheets reads Post IDs from both the group tab and the "Seen" tab before appending
+- [ ] **DDP-02**: A lead that exists in the "Seen" tab is never re-inserted into any group tab
+
+### Append
+
+- [ ] **APP-01**: New leads appended to group tabs include an unchecked checkbox in column F
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -56,6 +76,9 @@
 | Lead scoring / ranking | Binary filter is sufficient for v1 |
 | CRM integration | Out of scope per PRD |
 | Mobile app or web frontend | n8n form is the interface |
+| Undo "seen" (move back to group tab) | Client confirmed she never revisits handled leads |
+| Per-group "Seen" tabs | One global tab is simpler; client doesn't need group-level archive |
+| Automatic "seen" detection | Client wants explicit control via checkbox |
 
 ## Traceability
 
@@ -67,11 +90,20 @@
 | STOR-01–STOR-08 | Phase 4 | Complete (workflow JSON built, import pending) |
 | ORCH-01, ORCH-02, ORCH-03 | Phase 5 | Pending |
 
+| UX-01 | — | Pending |
+| UX-02 | — | Pending |
+| UX-03 | — | Pending |
+| UX-04 | — | Pending |
+| DDP-01 | — | Pending |
+| DDP-02 | — | Pending |
+| APP-01 | — | Pending |
+
 **Coverage:**
-- v1 requirements: 26 total
-- Mapped to phases: 26
-- Unmapped: 0 ✓
+- v1 requirements: 26 total (mapped)
+- v1.1 requirements: 7 total
+- v1.1 mapped to phases: 0 (pending roadmap)
+- Unmapped: 7 (pending roadmap creation)
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-22 — STOR-01 through STOR-08 marked complete (04-01)*
+*Last updated: 2026-03-22 — v1.1 Seen Leads UX requirements added*

@@ -62,5 +62,32 @@ Automatically surface real people seeking family law help in Hebrew Facebook gro
 | Append-only sheets | Safe for client data; never overwrites existing rows | Validated |
 | Claude structured JSON output | Deterministic parsing; no regex on prose | Validated |
 
+## Current Milestone: v1.1 Seen Leads UX
+
+**Goal:** Let the client mark leads as handled, auto-move them to a "Seen" tab, and prevent re-insertion.
+
+**Target features:**
+- Checkbox column on group tabs for marking leads as "seen"
+- Google Apps Script to auto-move checked rows to a global "Seen" tab
+- Dedup update: check both group tab and Seen tab before appending
+- New leads include unchecked checkbox on append
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-22 — All 5 phases complete. Pipeline ready for end-to-end testing.*
+*Last updated: 2026-03-22 — Milestone v1.1 started (Seen Leads UX)*
