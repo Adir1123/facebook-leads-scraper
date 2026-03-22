@@ -155,7 +155,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Merge Validate Data has already recovered all upstream fields + tabs\nconst data = $input.first().json;\nconst tabExists = data.tabs.includes(data.tabName);\nreturn [{ json: { sheetId: data.sheetId, tabName: data.tabName, tabExists, posts: data.posts, groupUrl: data.groupUrl } }];"
+        "jsCode": "const data = $input.first().json;\nconst tabExists = data.tabs.includes(data.tabName);\nconst seenTabExists = data.tabs.includes('Seen');\nreturn [{ json: { sheetId: data.sheetId, tabName: data.tabName, tabExists, seenTabExists, posts: data.posts, groupUrl: data.groupUrl } }];"
       },
       "id": "8b83bdae-21d8-475b-8cd2-f41f8cd31b50",
       "name": "Check Tab Exists",
@@ -224,7 +224,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const existingRows = $('Read Existing IDs').all();\nconst inputData = $('Check Tab Exists').first().json;\nconst inputPosts = inputData.posts || [];\nconst existingIds = new Set(existingRows.map(row => String(row.json['Post ID'] || '')));\nconst newPosts = inputPosts.filter(post => !existingIds.has(String(post.postId)));\nif (newPosts.length === 0) {\n  return [{ json: { newPosts: [], hasNewPosts: false, sheetId: inputData.sheetId, tabName: inputData.tabName } }];\n}\nreturn [{ json: { newPosts, hasNewPosts: true, sheetId: inputData.sheetId, tabName: inputData.tabName } }];"
+        "jsCode": "const existingRows = $('Read Existing IDs').all();\nconst inputData = $('Check Tab Exists').first().json;\nconst inputPosts = inputData.posts || [];\n\n// Group tab Post IDs (existing behavior)\nconst existingIds = new Set(existingRows.map(row => String(row.json['Post ID'] || '')));\n\n// Seen tab Post IDs (DDP-01: dedup against Seen tab)\nconst seenResponse = $('Read Seen Tab IDs').first().json;\nif (seenResponse && seenResponse.values) {\n  // Skip header row (index 0), add remaining Post IDs\n  for (let i = 1; i < seenResponse.values.length; i++) {\n    if (seenResponse.values[i][0]) {\n      existingIds.add(String(seenResponse.values[i][0]));\n    }\n  }\n}\n\nconst newPosts = inputPosts.filter(post => !existingIds.has(String(post.postId)));\nif (newPosts.length === 0) {\n  return [{ json: { newPosts: [], hasNewPosts: false, sheetId: inputData.sheetId, tabName: inputData.tabName } }];\n}\nreturn [{ json: { newPosts, hasNewPosts: true, sheetId: inputData.sheetId, tabName: inputData.tabName } }];"
       },
       "id": "3f5e1eb0-d32b-4b22-bde3-6b717aa8aac2",
       "name": "Filter New Posts",
@@ -251,7 +251,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\nconst posts = data.newPosts;\nconst scrapedAt = new Date().toISOString();\nreturn posts.map(post => ({\n  json: {\n    'Post ID': post.postId,\n    'Author': post.authorName,\n    'Post Link': post.postLink,\n    'Post Date': post.postDate,\n    'Scraped At': scrapedAt,\n    _sheetId: data.sheetId,\n    _tabName: data.tabName\n  }\n}));"
+        "jsCode": "const data = $input.first().json;\nconst posts = data.newPosts;\nconst scrapedAt = new Date().toISOString();\nreturn posts.map(post => ({\n  json: {\n    'Post ID': post.postId,\n    'Author': post.authorName,\n    'Post Link': post.postLink,\n    'Post Date': post.postDate,\n    'Scraped At': scrapedAt,\n    'Seen': false,\n    _sheetId: data.sheetId,\n    _tabName: data.tabName\n  }\n}));"
       },
       "id": "4e1bf9da-f36c-4a37-be21-12f5873e9e66",
       "name": "Build Rows",
@@ -282,12 +282,12 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.sheetId }}/values/'{{ $json.tabName }}'!A1:E1?valueInputOption=RAW",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.sheetId }}/values/'{{ $json.tabName }}'!A1:F1?valueInputOption=RAW",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "googleSheetsOAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"values\": [[\"Post ID\", \"Author\", \"Post Link\", \"Post Date\", \"Scraped At\"]]}",
+        "jsonBody": "={\"values\": [[\"Post ID\", \"Author\", \"Post Link\", \"Post Date\", \"Scraped At\", \"Seen\"]]}",
         "options": {}
       },
       "id": "110e2a9e-d40f-4dcd-843e-f535f687401f",
@@ -309,12 +309,12 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json._sheetId }}/values/'{{ $json._tabName }}'!A:E:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json._sheetId }}/values/'{{ $json._tabName }}'!A:F:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "googleSheetsOAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ values: [[ $json['Post ID'], $json['Author'], $json['Post Link'], $json['Post Date'], $json['Scraped At'] ]] }) }}",
+        "jsonBody": "={{ JSON.stringify({ values: [[ $json['Post ID'], $json['Author'], $json['Post Link'], $json['Post Date'], $json['Scraped At'], $json['Seen'] ]] }) }}",
         "options": {}
       },
       "id": "fd035d13-84e4-4fd2-985e-be59807f3d06",
@@ -322,6 +322,25 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [256, 0]
+    },
+    {
+      "parameters": {
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $('Check Tab Exists').first().json.sheetId }}/values/'Seen'!A:A",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "8f899624-d79a-410f-9689-d7006d90bee9",
+      "name": "Read Seen Tab IDs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-600, 320]
     }
   ],
   "connections": {
@@ -501,6 +520,17 @@
       ]
     },
     "Read Existing IDs": {
+      "main": [
+        [
+          {
+            "node": "Read Seen Tab IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Seen Tab IDs": {
       "main": [
         [
           {
