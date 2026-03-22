@@ -7,9 +7,9 @@
 
 ### Orchestration
 
-- [ ] **ORCH-01**: n8n form accepts `group_urls` (multi-line text, ≥1 URL) and `posts_per_group` (number, 1–500, default 50)
-- [ ] **ORCH-02**: leads_main loops over each URL and calls the three sub-workflows in sequence: scrape → filter → store
-- [ ] **ORCH-03**: leads_error_notify is attached as the Error Workflow on leads_main and sends Gmail alerts on failure
+- [x] **ORCH-01**: n8n form accepts `group_urls` (multi-line text, ≥1 URL) and `posts_per_group` (number, 1–500, default 50)
+- [x] **ORCH-02**: leads_main loops over each URL and calls the three sub-workflows in sequence: scrape → filter → store
+- [x] **ORCH-03**: leads_error_notify is attached as the Error Workflow on leads_main and sends Gmail alerts on failure
 
 ### Scraping
 

@@ -77,7 +77,7 @@ Plans:
 **Requirements:** ORCH-01, ORCH-02, ORCH-03
 
 **Plans:**
-1. Create workflow with n8n Form trigger (group_urls, posts_per_group fields)
+1/1 plans complete
 2. Code node: split `group_urls` by newline, default `posts_per_group` to 50 if 0/empty
 3. Loop Over Items: for each URL → call leads_scrape_apify → leads_filter_claude → leads_store_sheets
 4. Attach leads_error_notify as Error Workflow
@@ -95,7 +95,7 @@ Plans:
 | 2 | leads_scrape_apify | Complete    | 2026-03-21 |
 | 3 | leads_filter_claude | FLTR-01–07 | Planning Complete |
 | 4 | leads_store_sheets | STOR-01–08 | In Progress (04-01 complete) |
-| 5 | leads_main | ORCH-01–03 | Pending |
+| 5 | 1/1 | Complete   | 2026-03-22 |
 
 ---
 *Roadmap created: 2026-03-21*
