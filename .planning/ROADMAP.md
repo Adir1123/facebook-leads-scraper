@@ -123,7 +123,10 @@ Plans:
   3. The moved row appears in the "Seen" tab with its original data plus a Source Group column
   4. The "Seen" tab is created automatically if it does not exist when the first row is moved
 
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md — Google Apps Script: onEdit trigger for row move + addCheckboxesToAllGroups utility
 
 ### Phase 7: Pipeline Update
 
@@ -151,10 +154,10 @@ Plans:
 | 3. leads_filter_claude | v1.0 | 1/1 | Complete | 2026-03-22 |
 | 4. leads_store_sheets | v1.0 | 2/2 | Complete | 2026-03-22 |
 | 5. leads_main | v1.0 | 1/1 | Complete | 2026-03-22 |
-| 6. Seen Tab UX | v1.1 | 0/TBD | Not started | - |
+| 6. Seen Tab UX | v1.1 | 0/1 | Planned | - |
 | 7. Pipeline Update | v1.1 | 0/TBD | Not started | - |
 
 ---
 
 *Roadmap created: 2026-03-21*
-*Last updated: 2026-03-22 — v1.1 Seen Leads UX phases added*
+*Last updated: 2026-03-22 — Phase 6 planned (1 plan)*
