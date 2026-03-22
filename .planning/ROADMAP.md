@@ -63,7 +63,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Build complete leads_store_sheets workflow JSON: trigger, URL slug extraction, sheet get/create with static data, tab get/create with header row, dedup, conditional append, zero-posts skip
+- [x] 04-01-PLAN.md — Build complete leads_store_sheets workflow JSON: trigger, URL slug extraction, sheet get/create with static data, tab get/create with header row, dedup, conditional append, zero-posts skip (commit: 05e9bbb)
 - [ ] 04-02-PLAN.md — Import into n8n, assign Google Sheets + Drive credentials, verify sheet creation and dedup, update STATE.md
 
 **Done when:** Running twice with the same posts results in rows appended only on the first run.
@@ -94,7 +94,7 @@ Plans:
 | 1 | leads_error_notify | ERR-01–04 | In Progress |
 | 2 | leads_scrape_apify | Complete    | 2026-03-21 |
 | 3 | leads_filter_claude | FLTR-01–07 | Planning Complete |
-| 4 | leads_store_sheets | STOR-01–08 | Planning Complete |
+| 4 | leads_store_sheets | STOR-01–08 | In Progress (04-01 complete) |
 | 5 | leads_main | ORCH-01–03 | Pending |
 
 ---

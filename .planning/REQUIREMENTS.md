@@ -30,14 +30,14 @@
 
 ### Storage
 
-- [ ] **STOR-01**: leads_store_sheets accepts `{ posts: [...], group_url }` via Execute Workflow trigger
-- [ ] **STOR-02**: Extracts group name from URL slug for tab naming
-- [ ] **STOR-03**: Gets or creates master Google Sheet; stores Sheet ID in n8n static data on first run
-- [ ] **STOR-04**: Gets or creates tab named after group; inserts header row if tab is new
-- [ ] **STOR-05**: Reads existing Post IDs from column A before appending
-- [ ] **STOR-06**: Appends only posts whose Post ID is not already in the sheet
-- [ ] **STOR-07**: Row format: Post ID | Author | Post Link | Post Date | Scraped At (ISO timestamp)
-- [ ] **STOR-08**: If zero new posts after dedup, logs "all posts already exist" and skips write
+- [x] **STOR-01**: leads_store_sheets accepts `{ posts: [...], group_url }` via Execute Workflow trigger
+- [x] **STOR-02**: Extracts group name from URL slug for tab naming
+- [x] **STOR-03**: Gets or creates master Google Sheet; stores Sheet ID in n8n static data on first run
+- [x] **STOR-04**: Gets or creates tab named after group; inserts header row if tab is new
+- [x] **STOR-05**: Reads existing Post IDs from column A before appending
+- [x] **STOR-06**: Appends only posts whose Post ID is not already in the sheet
+- [x] **STOR-07**: Row format: Post ID | Author | Post Link | Post Date | Scraped At (ISO timestamp)
+- [x] **STOR-08**: If zero new posts after dedup, logs "all posts already exist" and skips write
 
 ### Error Handling
 
@@ -64,7 +64,7 @@
 | ERR-01, ERR-02, ERR-03, ERR-04 | Phase 1 | In Progress |
 | SCRP-01, SCRP-02, SCRP-03, SCRP-04 | Phase 2 | Pending |
 | FLTR-01–FLTR-07 | Phase 3 | Pending |
-| STOR-01–STOR-08 | Phase 4 | Pending |
+| STOR-01–STOR-08 | Phase 4 | Complete (workflow JSON built, import pending) |
 | ORCH-01, ORCH-02, ORCH-03 | Phase 5 | Pending |
 
 **Coverage:**
@@ -74,4 +74,4 @@
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 — initial definition*
+*Last updated: 2026-03-22 — STOR-01 through STOR-08 marked complete (04-01)*
