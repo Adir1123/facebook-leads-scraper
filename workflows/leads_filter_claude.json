@@ -1,5 +1,8 @@
 {
   "name": "leads_filter_claude",
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {},
@@ -7,7 +10,10 @@
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [256, 304]
+      "position": [
+        256,
+        304
+      ]
     },
     {
       "parameters": {
@@ -17,7 +23,10 @@
       "name": "Unpack Posts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [512, 304]
+      "position": [
+        512,
+        304
+      ]
     },
     {
       "parameters": {
@@ -28,7 +37,10 @@
       "name": "SplitInBatches",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [752, 304]
+      "position": [
+        752,
+        304
+      ]
     },
     {
       "parameters": {
@@ -38,7 +50,36 @@
       "name": "Build Batch Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1008, 304]
+      "position": [
+        1008,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.content[0].text;\nconst originalItems = $('Build Batch Message').first().json.originalItems;\n\n// Strip markdown code fences if Claude added them\nlet responseText = rawText.trim();\nif (responseText.startsWith('```json')) responseText = responseText.slice(7);\nelse if (responseText.startsWith('```')) responseText = responseText.slice(3);\nif (responseText.endsWith('```')) responseText = responseText.slice(0, -3);\nresponseText = responseText.trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(responseText);\n} catch (e) {\n  throw new Error('Claude returned malformed JSON: ' + responseText.substring(0, 200));\n}\n\nconst relevantIds = parsed.relevant_post_ids;\nif (!Array.isArray(relevantIds)) {\n  throw new Error('Claude response missing relevant_post_ids array: ' + responseText.substring(0, 200));\n}\n\nif (relevantIds.length === 0) {\n  // Return sentinel so Execute Workflow - Filter in leads_main always gets >=1 item.\n  // Without this, 0 items propagate out of the sub-workflow and kill the SplitInBatches loop in leads_main.\n  return [{ json: { _no_leads_sentinel: true } }];\n}\n\nconst idSet = new Set(relevantIds);\nconst filtered = originalItems.filter(item => idSet.has(item.postId));\nreturn filtered.map(item => ({ json: item }));"
+      },
+      "id": "parse-filter-response-node",
+      "name": "Parse and Filter Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all filtered posts from all batch iterations\nconst allFiltered = $('Parse and Filter Response').all();\nreturn allFiltered.length > 0 ? allFiltered : [{ json: { _empty: true } }];"
+      },
+      "id": "no-op-node",
+      "name": "Collect Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        512
+      ]
     },
     {
       "parameters": {
@@ -64,61 +105,337 @@
       "name": "Claude API Request",
       "type": "@n8n/n8n-nodes-langchain.anthropic",
       "typeVersion": 1,
-      "position": [1200, 304],
+      "position": [
+        1200,
+        304
+      ],
       "credentials": {
         "anthropicApi": {
-          "id": "anthropic-api-credential",
-          "name": "Anthropic account"
+          "id": "YGletZwUv1Je2m4s",
+          "name": "Anthropic account 4"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const rawText = $input.first().json.content[0].text;\nconst originalItems = $('Build Batch Message').first().json.originalItems;\n\n// Strip markdown code fences if Claude added them\nlet responseText = rawText.trim();\nif (responseText.startsWith('```json')) responseText = responseText.slice(7);\nelse if (responseText.startsWith('```')) responseText = responseText.slice(3);\nif (responseText.endsWith('```')) responseText = responseText.slice(0, -3);\nresponseText = responseText.trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(responseText);\n} catch (e) {\n  throw new Error('Claude returned malformed JSON: ' + responseText.substring(0, 200));\n}\n\nconst relevantIds = parsed.relevant_post_ids;\nif (!Array.isArray(relevantIds)) {\n  throw new Error('Claude response missing relevant_post_ids array: ' + responseText.substring(0, 200));\n}\n\nif (relevantIds.length === 0) {\n  return [];\n}\n\nconst idSet = new Set(relevantIds);\nconst filtered = originalItems.filter(item => idSet.has(item.postId));\nreturn filtered.map(item => ({ json: item }));"
-      },
-      "id": "parse-filter-response-node",
-      "name": "Parse and Filter Response",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1504, 304]
-    },
-    {
-      "parameters": {},
-      "id": "no-op-node",
-      "name": "No Operation",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [752, 512]
     }
   ],
   "connections": {
     "Execute Workflow Trigger": {
-      "main": [[{"node": "Unpack Posts", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Unpack Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Unpack Posts": {
-      "main": [[{"node": "SplitInBatches", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "SplitInBatches": {
       "main": [
-        [{"node": "No Operation", "type": "main", "index": 0}],
-        [{"node": "Build Batch Message", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Collect Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Batch Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse and Filter Response": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Build Batch Message": {
-      "main": [[{"node": "Claude API Request", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Claude API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Claude API Request": {
-      "main": [[{"node": "Parse and Filter Response", "type": "main", "index": 0}]]
-    },
-    "Parse and Filter Response": {
-      "main": [[{"node": "SplitInBatches", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Parse and Filter Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   },
-  "meta": {
-    "instanceId": ""
+  "staticData": null,
+  "pinData": {},
+  "activeVersionId": "25f1e1ad-7e26-4718-b718-8da668ad9e4e",
+  "versionCounter": 42,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-21T21:31:17.062Z",
+      "createdAt": "2026-03-21T21:31:17.062Z",
+      "role": "workflow:owner",
+      "workflowId": "CY2ax7bMZaLoODGm",
+      "projectId": "ZnxMuzYOK6jnxhPC",
+      "project": {
+        "updatedAt": "2026-03-15T19:12:43.323Z",
+        "createdAt": "2026-03-12T12:21:21.958Z",
+        "id": "ZnxMuzYOK6jnxhPC",
+        "name": "Adir Gabay <adirgabay9@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "3597e0e0-58fd-43df-9866-b21fe9587fca"
+      }
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-23T14:39:23.160Z",
+    "createdAt": "2026-03-23T14:39:23.160Z",
+    "versionId": "25f1e1ad-7e26-4718-b718-8da668ad9e4e",
+    "workflowId": "CY2ax7bMZaLoODGm",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "trigger-node",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1,
+        "position": [
+          256,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst posts = input.posts || [];\nif (posts.length === 0) {\n  return [];\n}\nreturn posts.map(post => ({ json: post }));"
+        },
+        "id": "unpack-posts-node",
+        "name": "Unpack Posts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          512,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "batchSize": 10,
+          "options": {}
+        },
+        "id": "split-in-batches-node",
+        "name": "SplitInBatches",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          752,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nconst posts = items.map(item => ({\n  id: item.json.postId,\n  text: item.json.postText,\n  author: item.json.authorName\n}));\n\nreturn [{\n  json: {\n    batchMessage: JSON.stringify(posts),\n    originalItems: items.map(i => i.json)\n  }\n}];"
+        },
+        "id": "build-batch-message-node",
+        "name": "Build Batch Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1008,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const rawText = $input.first().json.content[0].text;\nconst originalItems = $('Build Batch Message').first().json.originalItems;\n\n// Strip markdown code fences if Claude added them\nlet responseText = rawText.trim();\nif (responseText.startsWith('```json')) responseText = responseText.slice(7);\nelse if (responseText.startsWith('```')) responseText = responseText.slice(3);\nif (responseText.endsWith('```')) responseText = responseText.slice(0, -3);\nresponseText = responseText.trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(responseText);\n} catch (e) {\n  throw new Error('Claude returned malformed JSON: ' + responseText.substring(0, 200));\n}\n\nconst relevantIds = parsed.relevant_post_ids;\nif (!Array.isArray(relevantIds)) {\n  throw new Error('Claude response missing relevant_post_ids array: ' + responseText.substring(0, 200));\n}\n\nif (relevantIds.length === 0) {\n  // Return sentinel so Execute Workflow - Filter in leads_main always gets >=1 item.\n  // Without this, 0 items propagate out of the sub-workflow and kill the SplitInBatches loop in leads_main.\n  return [{ json: { _no_leads_sentinel: true } }];\n}\n\nconst idSet = new Set(relevantIds);\nconst filtered = originalItems.filter(item => idSet.has(item.postId));\nreturn filtered.map(item => ({ json: item }));"
+        },
+        "id": "parse-filter-response-node",
+        "name": "Parse and Filter Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1504,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Collect all filtered posts from all batch iterations\nconst allFiltered = $('Parse and Filter Response').all();\nreturn allFiltered.length > 0 ? allFiltered : [{ json: { _empty: true } }];"
+        },
+        "id": "no-op-node",
+        "name": "Collect Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          752,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-6",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-6"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "={{ $json.batchMessage }}"
+              }
+            ]
+          },
+          "options": {
+            "system": "You are a lead qualification expert for a Family Law Attorney in Israel.\nYou read Hebrew fluently and understand conversational, colloquial, and formal Hebrew.\n\nA LEAD is a Facebook post where a real person is actively seeking help related to:\n- Divorce or separation (גירושין, פרידה)\n- Child custody disputes (משמורת ילדים)\n- Alimony or financial disputes in marriage (מזונות, הסכם ממון)\n- Restraining orders or domestic violence (צו הגנה, אלימות במשפחה)\n- Family legal advice requests (ייעוץ משפטי משפחתי)\n- Property disputes in marriage or divorce (חלוקת רכוש)\n\nNOT a lead:\n- Posts offering legal services (attorneys advertising)\n- General news, opinion, or informational posts\n- Posts that mention these topics without expressing a personal need\n- Spam, promotions, or unrelated content\n\nRespond ONLY with raw valid JSON. Do NOT use markdown code fences. Do NOT include any explanation.\nUse this exact format:\n{\"relevant_post_ids\": [\"id1\", \"id2\"]}\n\nIf no posts are relevant, return: {\"relevant_post_ids\": []}",
+            "maxTokens": 512
+          }
+        },
+        "id": "anthropic-node",
+        "name": "Claude API Request",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          1200,
+          304
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "YGletZwUv1Je2m4s",
+            "name": "Anthropic account 4"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Unpack Posts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Unpack Posts": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SplitInBatches": {
+        "main": [
+          [
+            {
+              "node": "Collect Results",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Build Batch Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse and Filter Response": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Batch Message": {
+        "main": [
+          [
+            {
+              "node": "Claude API Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Claude API Request": {
+        "main": [
+          [
+            {
+              "node": "Parse and Filter Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Adir Gabay",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-23T14:39:23.357Z",
+        "id": 139,
+        "workflowId": "CY2ax7bMZaLoODGm",
+        "versionId": "25f1e1ad-7e26-4718-b718-8da668ad9e4e",
+        "event": "activated",
+        "userId": "3597e0e0-58fd-43df-9866-b21fe9587fca"
+      },
+      {
+        "createdAt": "2026-03-23T14:39:23.263Z",
+        "id": 138,
+        "workflowId": "CY2ax7bMZaLoODGm",
+        "versionId": "25f1e1ad-7e26-4718-b718-8da668ad9e4e",
+        "event": "deactivated",
+        "userId": "3597e0e0-58fd-43df-9866-b21fe9587fca"
+      }
+    ]
   }
 }

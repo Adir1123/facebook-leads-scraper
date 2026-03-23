@@ -1,10 +1,8 @@
 {
   "name": "leads_main",
-  "active": false,
-  "settings": {
-    "executionOrder": "v1",
-    "errorWorkflow": "k5LZs1ntJRXaqNpM"
-  },
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -14,194 +12,203 @@
           "values": [
             {
               "fieldLabel": "Group URLs",
-              "fieldName": "group_urls",
               "fieldType": "textarea",
               "placeholder": "https://www.facebook.com/groups/example\nhttps://www.facebook.com/groups/another",
               "requiredField": true
             },
             {
               "fieldLabel": "Posts Per Group",
-              "fieldName": "posts_per_group",
               "fieldType": "number",
-              "placeholder": "50",
-              "requiredField": false
+              "placeholder": "50"
             }
           ]
         },
-        "options": {
-          "respondWhen": "lastNode"
-        }
+        "options": {}
       },
-      "id": "form-trigger-node",
+      "id": "ce85cc6a-eb6d-4fd7-a82e-3c6e629ac15e",
       "name": "Form Trigger",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
-      "position": [250, 300],
-      "webhookId": ""
+      "position": [
+        -736,
+        160
+      ],
+      "webhookId": "0f44b3fc-3405-4c87-90c8-5eca50bd3a94"
     },
     {
       "parameters": {
         "jsCode": "const raw = $input.first().json[\"Group URLs\"] || $input.first().json[\"group_urls\"] || \"\";\nconst postCount = Number($input.first().json[\"Posts Per Group\"] ?? $input.first().json[\"posts_per_group\"]) || 50;\nconst effectiveCount = (postCount < 1 || postCount > 500) ? 50 : postCount;\n\nconst lines = raw.split(\"\\n\").map(l => l.trim()).filter(l => l.length > 0);\n\nif (lines.length === 0) {\n  throw new Error(\"No URLs provided. Enter at least one Facebook group URL.\");\n}\n\n// Validate pattern: must contain facebook.com/groups/<slug>\nconst validPattern = /^https?:\\/\\/(www\\.)?facebook\\.com\\/groups\\/[a-zA-Z0-9._-]+\\/?([\\?].*)?$/;\nconst invalidUrls = lines.filter(url => !validPattern.test(url));\nif (invalidUrls.length > 0) {\n  throw new Error(\"Invalid URLs (must be facebook.com/groups/slug):\\n\" + invalidUrls.join(\"\\n\"));\n}\n\n// Normalize: https://www.facebook.com/groups/slug (no trailing slash, no query params)\nconst normalize = (url) => {\n  const match = url.match(/facebook\\.com\\/groups\\/([a-zA-Z0-9._-]+)/);\n  return match ? `https://www.facebook.com/groups/${match[1]}` : url;\n};\n\nconst normalized = lines.map(normalize);\n\n// Deduplicate silently (D-04)\nconst seen = new Set();\nconst unique = normalized.filter(url => {\n  if (seen.has(url)) return false;\n  seen.add(url);\n  return true;\n});\n\nreturn unique.map(url => ({\n  json: {\n    group_url: url,\n    post_count: effectiveCount\n  }\n}));"
       },
-      "id": "parse-urls-node",
+      "id": "934390b9-51b8-44b3-89df-3733d459abc7",
       "name": "Parse URLs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 300]
+      "position": [
+        -480,
+        160
+      ]
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "split-in-batches-node",
+      "id": "d9619ab3-76a0-4013-aac1-d61ff866b52d",
       "name": "SplitInBatches",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [750, 300]
+      "position": [
+        -240,
+        160
+      ]
     },
     {
       "parameters": {
-        "source": "database",
         "workflowId": "H3PMNprdI9tzT7yf",
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "group_url": "={{ $json.group_url }}",
-            "post_count": "={{ $json.post_count }}"
-          }
-        },
         "options": {}
       },
-      "id": "execute-scrape-node",
+      "id": "6e7e03bb-9550-4355-8a76-ad8fc2ddb328",
       "name": "Execute Workflow - Scrape",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [1000, 200],
-      "onError": "continueErrorOutput",
-      "alwaysOutputData": true
+      "position": [
+        16,
+        48
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const groupUrl = $('SplitInBatches').first().json.group_url;\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || \"Scrape sub-workflow failed\";\nreturn [{ json: { group_url: groupUrl, status: \"error\", error_reason: errMsg, scraped: 0, leads: 0, added: 0 } }];"
+        "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || 'Scrape sub-workflow failed';\nreturn [{ json: { group_url: groupUrl, status: 'error', error_reason: errMsg, scraped: 0, leads: 0, added: 0 } }];"
       },
-      "id": "capture-scrape-error-node",
+      "id": "2c1c3980-5db6-4a3a-89be-4163272630d2",
       "name": "Capture Scrape Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 450]
+      "position": [
+        272,
+        304
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const posts = $input.all().map(item => item.json);\nconst groupUrl = $('SplitInBatches').first().json.group_url;\nreturn [{ json: { posts: posts, group_url: groupUrl } }];"
+        "jsCode": "const posts = $input.all().map(item => item.json);\nconst groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nreturn [{ json: { posts: posts, group_url: groupUrl } }];"
       },
-      "id": "assemble-filter-input-node",
+      "id": "c0433ef5-b398-46d0-9cd0-02abd89c0e96",
       "name": "Assemble Filter Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 200]
+      "position": [
+        272,
+        48
+      ]
     },
     {
       "parameters": {
-        "source": "database",
         "workflowId": "CY2ax7bMZaLoODGm",
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "posts": "={{ $json.posts }}",
-            "group_url": "={{ $json.group_url }}"
-          }
-        },
         "options": {}
       },
-      "id": "execute-filter-node",
+      "id": "f5c81396-26f0-4188-9de0-0975228b8d27",
       "name": "Execute Workflow - Filter",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [1500, 200],
-      "onError": "continueErrorOutput",
-      "alwaysOutputData": true
+      "position": [
+        528,
+        48
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const groupUrl = $('SplitInBatches').first().json.group_url;\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || \"Filter sub-workflow failed\";\nreturn [{ json: { group_url: groupUrl, status: \"error\", error_reason: errMsg, scraped: scrapeCount, leads: 0, added: 0 } }];"
+        "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || 'Filter sub-workflow failed';\nreturn [{ json: { group_url: groupUrl, status: 'error', error_reason: errMsg, scraped: scrapeCount, leads: 0, added: 0 } }];"
       },
-      "id": "capture-filter-error-node",
+      "id": "dd7c211d-060b-4976-9d4a-7efea0309049",
       "name": "Capture Filter Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1750, 450]
+      "position": [
+        768,
+        352
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const posts = $input.all().map(item => item.json);\nconst groupUrl = $('SplitInBatches').first().json.group_url;\nreturn [{ json: { posts: posts, group_url: groupUrl } }];"
+        "jsCode": "const posts = $input.all()\n  .map(item => item.json)\n  .filter(p => p.postId && !p._no_leads_sentinel);\nconst groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nreturn [{ json: { posts: posts, group_url: groupUrl } }];"
       },
-      "id": "assemble-store-input-node",
+      "id": "0e8b2cc7-59da-4569-81e6-daed5642dd8f",
       "name": "Assemble Store Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1750, 200]
+      "position": [
+        768,
+        48
+      ]
     },
     {
       "parameters": {
-        "source": "database",
         "workflowId": "HWJVJIVEDpu69Nbw",
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "posts": "={{ $json.posts }}",
-            "group_url": "={{ $json.group_url }}"
-          }
-        },
         "options": {}
       },
-      "id": "execute-store-node",
+      "id": "bbbf0651-5a41-4139-912c-a98bfd55f61b",
       "name": "Execute Workflow - Store",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [2000, 200],
-      "onError": "continueErrorOutput",
-      "alwaysOutputData": true
+      "position": [
+        1024,
+        48
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const groupUrl = $('SplitInBatches').first().json.group_url;\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst leadsCount = $('Assemble Store Input').first()?.json?.posts?.length || 0;\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || \"Store sub-workflow failed\";\nreturn [{ json: { group_url: groupUrl, status: \"error\", error_reason: errMsg, scraped: scrapeCount, leads: leadsCount, added: 0 } }];"
+        "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst leadsCount = $('Assemble Store Input').first()?.json?.posts?.length || 0;\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || 'Store sub-workflow failed';\nreturn [{ json: { group_url: groupUrl, status: 'error', error_reason: errMsg, scraped: scrapeCount, leads: leadsCount, added: 0 } }];"
       },
-      "id": "capture-store-error-node",
+      "id": "9378d5d3-aa89-42cc-baa1-3d2fa2cd8e86",
       "name": "Capture Store Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2250, 450]
+      "position": [
+        1280,
+        304
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const groupUrl = $('SplitInBatches').first().json.group_url;\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst leadsCount = $('Assemble Store Input').first()?.json?.posts?.length || 0;\nreturn [{ json: { group_url: groupUrl, status: \"success\", scraped: scrapeCount, leads: leadsCount, added: leadsCount } }];"
+        "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst leadsCount = $('Assemble Store Input').first()?.json?.posts?.length || 0;\nreturn [{ json: { group_url: groupUrl, status: 'success', scraped: scrapeCount, leads: leadsCount, added: leadsCount } }];"
       },
-      "id": "capture-success-stats-node",
+      "id": "b679c287-6b9c-4c8c-94a4-430cbb3c5be7",
       "name": "Capture Success Stats",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2250, 200]
+      "position": [
+        1280,
+        48
+      ]
     },
     {
       "parameters": {
         "jsCode": "const items = $input.all();\nreturn [{ json: { groups: items.map(i => i.json) } }];"
       },
-      "id": "accumulate-stats-node",
+      "id": "8edb77b6-654a-4c85-be68-6a8612b84a37",
       "name": "Accumulate Stats",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1000, 450]
+      "position": [
+        16,
+        304
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const groups = $input.first().json.groups || [];\nconst sheetId = \"1N3FqJBgg-az5f_bbMdK4ZW8KNZpuOUHkoE5kfPrpDKE\";\nconst sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}`;\nconst allFailed = groups.length > 0 && groups.every(g => g.status === \"error\");\nconst successCount = groups.filter(g => g.status !== \"error\").length;\nconst lines = groups.map(g => {\n  const slug = g.group_url.match(/\\/groups\\/([^\\/]+)/)?.[1] || g.group_url;\n  if (g.status === \"error\") {\n    return `<li><strong>${slug}</strong>: FAILED - ${g.error_reason}</li>`;\n  }\n  return `<li><strong>${slug}</strong>: scraped ${g.scraped}, leads ${g.leads}, new ${g.added}</li>`;\n});\nconst html = `<h2>Leads Run Complete</h2><ul>${lines.join(\"\")}</ul><p><a href=\"${sheetUrl}\" target=\"_blank\">Open Google Sheet</a></p>`;\nreturn [{ json: { responseText: html, allFailed, successCount, sheetUrl } }];"
+        "jsCode": "const groups = $input.first().json.groups || [];\nconst sheetId = '1vmxiJ1Tnp1uOUHUEZSqHYBpqPUjWq-I5nApGOAupYGg';\nconst sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}`;\nconst allFailed = groups.length > 0 && groups.every(g => g.status === 'error');\nconst successCount = groups.filter(g => g.status !== 'error').length;\nconst lines = groups.map(g => {\n  const slug = g.group_url.match(/\\/groups\\/([^\\/]+)/)?.[1] || g.group_url;\n  if (g.status === 'error') {\n    return `<li><strong>${slug}</strong>: FAILED - ${g.error_reason}</li>`;\n  }\n  return `<li><strong>${slug}</strong>: scraped ${g.scraped}, leads ${g.leads}, new ${g.added}</li>`;\n});\nconst html = `<h2>Leads Run Complete</h2><ul>${lines.join('')}</ul><p><a href=\"${sheetUrl}\" target=\"_blank\">Open Google Sheet</a></p>`;\nreturn [{ json: { responseText: html, allFailed, successCount, sheetUrl } }];"
       },
-      "id": "build-response-node",
+      "id": "d73aff3b-c092-47cf-ba38-cbf52dac6628",
       "name": "Build Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 450]
+      "position": [
+        272,
+        528
+      ]
     },
     {
       "parameters": {
@@ -223,23 +230,120 @@
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
-      "id": "if-all-failed-node",
+      "id": "4e58d857-5e3f-42f7-9472-ac9e06884f2c",
       "name": "IF All Failed",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1500, 450]
+      "position": [
+        528,
+        304
+      ]
     },
     {
       "parameters": {
         "errorMessage": "All group scrapes failed - check leads_error_notify for details."
       },
-      "id": "stop-and-error-node",
+      "id": "a552bc5c-e4f4-41ea-bfa5-72d61cede5c4",
       "name": "Stop And Error",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
-      "position": [1750, 350]
+      "position": [
+        768,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all();"
+      },
+      "id": "dc72bdeb-310a-4656-8531-b37c002ced53",
+      "name": "Current Group",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6,8,10,12,14,16,18,20,22,0 * * *"
+            }
+          ]
+        }
+      },
+      "id": "17875800-04dd-4877-b3a6-9ed32a84e988",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -736,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hardcoded Facebook group URLs for scheduled runs\nconst groups = [\n  'https://www.facebook.com/groups/lawyersanswer/',\n  'https://www.facebook.com/groups/2653651874928924/',\n  'https://www.facebook.com/groups/639679709845674/',\n  'https://www.facebook.com/groups/490620362413034/',\n  'https://www.facebook.com/groups/lawyers.israel/',\n  'https://www.facebook.com/groups/157447299429180/',\n  'https://www.facebook.com/groups/1942619222682519/',\n  'https://www.facebook.com/groups/soferlawoffice/',\n  'https://www.facebook.com/groups/460028397063683/',\n  'https://www.facebook.com/groups/amitblaze/'\n];\n\nreturn [{ json: { 'Group URLs': groups.join('\\n'), 'Posts Per Group': 10 } }];"
+      },
+      "id": "bc147a10-5096-4ce9-bd5a-c1b6f4dcdc9a",
+      "name": "Scheduled Groups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-leads-condition",
+              "leftValue": "={{ $json.posts.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-has-leads-node",
+      "name": "IF Has Leads",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1970,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nreturn [{ json: { group_url: groupUrl, status: \"success\", scraped: scrapeCount, leads: 0, added: 0 } }];"
+      },
+      "id": "capture-no-leads-stats-node",
+      "name": "Capture No-Leads Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        350
+      ]
     }
   ],
   "connections": {
@@ -276,7 +380,7 @@
         ],
         [
           {
-            "node": "Execute Workflow - Scrape",
+            "node": "Current Group",
             "type": "main",
             "index": 0
           }
@@ -356,7 +460,7 @@
       "main": [
         [
           {
-            "node": "Execute Workflow - Store",
+            "node": "IF Has Leads",
             "type": "main",
             "index": 0
           }
@@ -433,12 +537,734 @@
             "type": "main",
             "index": 0
           }
+        ]
+      ]
+    },
+    "Current Group": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow - Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Scheduled Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scheduled Groups": {
+      "main": [
+        [
+          {
+            "node": "Parse URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Leads": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow - Store",
+            "type": "main",
+            "index": 0
+          }
         ],
-        []
+        [
+          {
+            "node": "Capture No-Leads Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture No-Leads Stats": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
-  "meta": {
-    "instanceId": ""
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "k5LZs1ntJRXaqNpM",
+    "timezone": "Asia/Jerusalem"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "pinData": {},
+  "activeVersionId": "e6950c0b-18a5-4081-9cc6-5010b2d1bdd7",
+  "versionCounter": 33,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-03-22T16:25:09.216Z",
+      "createdAt": "2026-03-22T16:25:09.216Z",
+      "role": "workflow:owner",
+      "workflowId": "RJ315y6bn4zO0stE",
+      "projectId": "ZnxMuzYOK6jnxhPC",
+      "project": {
+        "updatedAt": "2026-03-15T19:12:43.323Z",
+        "createdAt": "2026-03-12T12:21:21.958Z",
+        "id": "ZnxMuzYOK6jnxhPC",
+        "name": "Adir Gabay <adirgabay9@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "3597e0e0-58fd-43df-9866-b21fe9587fca"
+      }
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-23T14:40:34.441Z",
+    "createdAt": "2026-03-23T14:40:34.441Z",
+    "versionId": "e6950c0b-18a5-4081-9cc6-5010b2d1bdd7",
+    "workflowId": "RJ315y6bn4zO0stE",
+    "nodes": [
+      {
+        "parameters": {
+          "formTitle": "Facebook Leads Scraper",
+          "formDescription": "Enter one Facebook group URL per line. Posts will be scraped, filtered for leads, and saved to your Google Sheet.",
+          "formFields": {
+            "values": [
+              {
+                "fieldLabel": "Group URLs",
+                "fieldType": "textarea",
+                "placeholder": "https://www.facebook.com/groups/example\nhttps://www.facebook.com/groups/another",
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Posts Per Group",
+                "fieldType": "number",
+                "placeholder": "50"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "ce85cc6a-eb6d-4fd7-a82e-3c6e629ac15e",
+        "name": "Form Trigger",
+        "type": "n8n-nodes-base.formTrigger",
+        "typeVersion": 2.2,
+        "position": [
+          -736,
+          160
+        ],
+        "webhookId": "0f44b3fc-3405-4c87-90c8-5eca50bd3a94"
+      },
+      {
+        "parameters": {
+          "jsCode": "const raw = $input.first().json[\"Group URLs\"] || $input.first().json[\"group_urls\"] || \"\";\nconst postCount = Number($input.first().json[\"Posts Per Group\"] ?? $input.first().json[\"posts_per_group\"]) || 50;\nconst effectiveCount = (postCount < 1 || postCount > 500) ? 50 : postCount;\n\nconst lines = raw.split(\"\\n\").map(l => l.trim()).filter(l => l.length > 0);\n\nif (lines.length === 0) {\n  throw new Error(\"No URLs provided. Enter at least one Facebook group URL.\");\n}\n\n// Validate pattern: must contain facebook.com/groups/<slug>\nconst validPattern = /^https?:\\/\\/(www\\.)?facebook\\.com\\/groups\\/[a-zA-Z0-9._-]+\\/?([\\?].*)?$/;\nconst invalidUrls = lines.filter(url => !validPattern.test(url));\nif (invalidUrls.length > 0) {\n  throw new Error(\"Invalid URLs (must be facebook.com/groups/slug):\\n\" + invalidUrls.join(\"\\n\"));\n}\n\n// Normalize: https://www.facebook.com/groups/slug (no trailing slash, no query params)\nconst normalize = (url) => {\n  const match = url.match(/facebook\\.com\\/groups\\/([a-zA-Z0-9._-]+)/);\n  return match ? `https://www.facebook.com/groups/${match[1]}` : url;\n};\n\nconst normalized = lines.map(normalize);\n\n// Deduplicate silently (D-04)\nconst seen = new Set();\nconst unique = normalized.filter(url => {\n  if (seen.has(url)) return false;\n  seen.add(url);\n  return true;\n});\n\nreturn unique.map(url => ({\n  json: {\n    group_url: url,\n    post_count: effectiveCount\n  }\n}));"
+        },
+        "id": "934390b9-51b8-44b3-89df-3733d459abc7",
+        "name": "Parse URLs",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -480,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "d9619ab3-76a0-4013-aac1-d61ff866b52d",
+        "name": "SplitInBatches",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          -240,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": "H3PMNprdI9tzT7yf",
+          "options": {}
+        },
+        "id": "6e7e03bb-9550-4355-8a76-ad8fc2ddb328",
+        "name": "Execute Workflow - Scrape",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [
+          16,
+          48
+        ],
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || 'Scrape sub-workflow failed';\nreturn [{ json: { group_url: groupUrl, status: 'error', error_reason: errMsg, scraped: 0, leads: 0, added: 0 } }];"
+        },
+        "id": "2c1c3980-5db6-4a3a-89be-4163272630d2",
+        "name": "Capture Scrape Error",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          272,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const posts = $input.all().map(item => item.json);\nconst groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nreturn [{ json: { posts: posts, group_url: groupUrl } }];"
+        },
+        "id": "c0433ef5-b398-46d0-9cd0-02abd89c0e96",
+        "name": "Assemble Filter Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          272,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": "CY2ax7bMZaLoODGm",
+          "options": {}
+        },
+        "id": "f5c81396-26f0-4188-9de0-0975228b8d27",
+        "name": "Execute Workflow - Filter",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [
+          528,
+          48
+        ],
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || 'Filter sub-workflow failed';\nreturn [{ json: { group_url: groupUrl, status: 'error', error_reason: errMsg, scraped: scrapeCount, leads: 0, added: 0 } }];"
+        },
+        "id": "dd7c211d-060b-4976-9d4a-7efea0309049",
+        "name": "Capture Filter Error",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          768,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const posts = $input.all()\n  .map(item => item.json)\n  .filter(p => p.postId && !p._no_leads_sentinel);\nconst groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nreturn [{ json: { posts: posts, group_url: groupUrl } }];"
+        },
+        "id": "0e8b2cc7-59da-4569-81e6-daed5642dd8f",
+        "name": "Assemble Store Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          768,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": "HWJVJIVEDpu69Nbw",
+          "options": {}
+        },
+        "id": "bbbf0651-5a41-4139-912c-a98bfd55f61b",
+        "name": "Execute Workflow - Store",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [
+          1024,
+          48
+        ],
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst leadsCount = $('Assemble Store Input').first()?.json?.posts?.length || 0;\nconst item = $input.first()?.json || {};\nconst errMsg = item.error?.message || 'Store sub-workflow failed';\nreturn [{ json: { group_url: groupUrl, status: 'error', error_reason: errMsg, scraped: scrapeCount, leads: leadsCount, added: 0 } }];"
+        },
+        "id": "9378d5d3-aa89-42cc-baa1-3d2fa2cd8e86",
+        "name": "Capture Store Error",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nconst leadsCount = $('Assemble Store Input').first()?.json?.posts?.length || 0;\nreturn [{ json: { group_url: groupUrl, status: 'success', scraped: scrapeCount, leads: leadsCount, added: leadsCount } }];"
+        },
+        "id": "b679c287-6b9c-4c8c-94a4-430cbb3c5be7",
+        "name": "Capture Success Stats",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nreturn [{ json: { groups: items.map(i => i.json) } }];"
+        },
+        "id": "8edb77b6-654a-4c85-be68-6a8612b84a37",
+        "name": "Accumulate Stats",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          16,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const groups = $input.first().json.groups || [];\nconst sheetId = '1vmxiJ1Tnp1uOUHUEZSqHYBpqPUjWq-I5nApGOAupYGg';\nconst sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}`;\nconst allFailed = groups.length > 0 && groups.every(g => g.status === 'error');\nconst successCount = groups.filter(g => g.status !== 'error').length;\nconst lines = groups.map(g => {\n  const slug = g.group_url.match(/\\/groups\\/([^\\/]+)/)?.[1] || g.group_url;\n  if (g.status === 'error') {\n    return `<li><strong>${slug}</strong>: FAILED - ${g.error_reason}</li>`;\n  }\n  return `<li><strong>${slug}</strong>: scraped ${g.scraped}, leads ${g.leads}, new ${g.added}</li>`;\n});\nconst html = `<h2>Leads Run Complete</h2><ul>${lines.join('')}</ul><p><a href=\"${sheetUrl}\" target=\"_blank\">Open Google Sheet</a></p>`;\nreturn [{ json: { responseText: html, allFailed, successCount, sheetUrl } }];"
+        },
+        "id": "d73aff3b-c092-47cf-ba38-cbf52dac6628",
+        "name": "Build Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          272,
+          528
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "all-failed-condition",
+                "leftValue": "={{ $json.allFailed }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "4e58d857-5e3f-42f7-9472-ac9e06884f2c",
+        "name": "IF All Failed",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          528,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "errorMessage": "All group scrapes failed - check leads_error_notify for details."
+        },
+        "id": "a552bc5c-e4f4-41ea-bfa5-72d61cede5c4",
+        "name": "Stop And Error",
+        "type": "n8n-nodes-base.stopAndError",
+        "typeVersion": 1,
+        "position": [
+          768,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "return $input.all();"
+        },
+        "id": "dc72bdeb-310a-4656-8531-b37c002ced53",
+        "name": "Current Group",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          912,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 6,8,10,12,14,16,18,20,22,0 * * *"
+              }
+            ]
+          }
+        },
+        "id": "17875800-04dd-4877-b3a6-9ed32a84e988",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -736,
+          480
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hardcoded Facebook group URLs for scheduled runs\nconst groups = [\n  'https://www.facebook.com/groups/lawyersanswer/',\n  'https://www.facebook.com/groups/2653651874928924/',\n  'https://www.facebook.com/groups/639679709845674/',\n  'https://www.facebook.com/groups/490620362413034/',\n  'https://www.facebook.com/groups/lawyers.israel/',\n  'https://www.facebook.com/groups/157447299429180/',\n  'https://www.facebook.com/groups/1942619222682519/',\n  'https://www.facebook.com/groups/soferlawoffice/',\n  'https://www.facebook.com/groups/460028397063683/',\n  'https://www.facebook.com/groups/amitblaze/'\n];\n\nreturn [{ json: { 'Group URLs': groups.join('\\n'), 'Posts Per Group': 10 } }];"
+        },
+        "id": "bc147a10-5096-4ce9-bd5a-c1b6f4dcdc9a",
+        "name": "Scheduled Groups",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -480,
+          480
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "has-leads-condition",
+                "leftValue": "={{ $json.posts.length }}",
+                "rightValue": 0,
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "if-has-leads-node",
+        "name": "IF Has Leads",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          1970,
+          200
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const groupUrl = $('Current Group').first()?.json?.group_url || 'unknown';\nconst scrapeCount = $('Assemble Filter Input').first()?.json?.posts?.length || 0;\nreturn [{ json: { group_url: groupUrl, status: \"success\", scraped: scrapeCount, leads: 0, added: 0 } }];"
+        },
+        "id": "capture-no-leads-stats-node",
+        "name": "Capture No-Leads Stats",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2200,
+          350
+        ]
+      }
+    ],
+    "connections": {
+      "Form Trigger": {
+        "main": [
+          [
+            {
+              "node": "Parse URLs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse URLs": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SplitInBatches": {
+        "main": [
+          [
+            {
+              "node": "Accumulate Stats",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Current Group",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow - Scrape": {
+        "main": [
+          [
+            {
+              "node": "Assemble Filter Input",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Capture Scrape Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Capture Scrape Error": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble Filter Input": {
+        "main": [
+          [
+            {
+              "node": "Execute Workflow - Filter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow - Filter": {
+        "main": [
+          [
+            {
+              "node": "Assemble Store Input",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Capture Filter Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Capture Filter Error": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assemble Store Input": {
+        "main": [
+          [
+            {
+              "node": "IF Has Leads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow - Store": {
+        "main": [
+          [
+            {
+              "node": "Capture Success Stats",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Capture Store Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Capture Store Error": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Capture Success Stats": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Accumulate Stats": {
+        "main": [
+          [
+            {
+              "node": "Build Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Response": {
+        "main": [
+          [
+            {
+              "node": "IF All Failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF All Failed": {
+        "main": [
+          [
+            {
+              "node": "Stop And Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Current Group": {
+        "main": [
+          [
+            {
+              "node": "Execute Workflow - Scrape",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Scheduled Groups",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Scheduled Groups": {
+        "main": [
+          [
+            {
+              "node": "Parse URLs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Has Leads": {
+        "main": [
+          [
+            {
+              "node": "Execute Workflow - Store",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Capture No-Leads Stats",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Capture No-Leads Stats": {
+        "main": [
+          [
+            {
+              "node": "SplitInBatches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Adir Gabay",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-23T14:40:34.822Z",
+        "id": 143,
+        "workflowId": "RJ315y6bn4zO0stE",
+        "versionId": "e6950c0b-18a5-4081-9cc6-5010b2d1bdd7",
+        "event": "activated",
+        "userId": "3597e0e0-58fd-43df-9866-b21fe9587fca"
+      },
+      {
+        "createdAt": "2026-03-23T14:40:34.569Z",
+        "id": 142,
+        "workflowId": "RJ315y6bn4zO0stE",
+        "versionId": "e6950c0b-18a5-4081-9cc6-5010b2d1bdd7",
+        "event": "deactivated",
+        "userId": "3597e0e0-58fd-43df-9866-b21fe9587fca"
+      }
+    ]
   }
 }
