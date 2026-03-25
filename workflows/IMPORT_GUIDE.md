@@ -4,7 +4,7 @@
 
 ### How to Import
 
-1. Open your n8n instance at `adir1123.app.n8n.cloud`
+1. Open your n8n instance at `<your-name>.app.n8n.cloud`
 2. Go to **Workflows** in the left sidebar
 3. Click **Add Workflow** > **Import from file**
 4. Select `workflows/leads_scrape_apify.json`
